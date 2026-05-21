@@ -30,7 +30,7 @@ class ProductController extends Controller
 
         $products = $query->paginate(20)->withQueryString();
 
-        return view('products.index', compact('products', 'categories'));
+        return view('products', compact('products', 'categories'));
     }
 
     public function show(Product $product)
@@ -41,6 +41,6 @@ class ProductController extends Controller
 
         $product->load('category', 'discounts', 'variants.inventory');
 
-        return view('products.show', compact('product'));
+        return view('product_detail', compact('product'));
     }
 }

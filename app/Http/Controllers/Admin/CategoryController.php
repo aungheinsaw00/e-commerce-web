@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
         $this->authorize('viewAny', Category::class);

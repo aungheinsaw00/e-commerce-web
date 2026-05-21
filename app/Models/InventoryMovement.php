@@ -22,15 +22,20 @@ class InventoryMovement extends Model
     const TYPE_RESERVE = 'RESERVE';
     const TYPE_RELEASE = 'RELEASE';
 
-    public function variant()
-    {
-        return $this->belongsTo(ProductVariant::class, 'variant_id');
-    }
-
     protected static function booted(): void
     {
         static::creating(function (InventoryMovement $movement) {
             $movement->created_at = $movement->created_at ?? now();
         });
+
+        // Ensure consistent ordering by insertion order (id ASC) for audit trails
+        static::addGlobalScope('ordered', function ($builder) {
+            $builder->orderBy('id', 'asc');
+        });
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class, 'variant_id');
     }
 }

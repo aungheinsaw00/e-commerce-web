@@ -7,11 +7,14 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductVariant;
 use App\Models\Inventory;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
+    use AuthorizesRequests;
+
     public function index()
     {
         $this->authorize('viewAny', Product::class);
@@ -36,12 +39,12 @@ class ProductController extends Controller
         $this->authorize('create', Product::class);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'base_price' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'images' => 'nullable|array',
-            'sku' => 'required|string|unique:product_variants,sku',
+            'name'          => 'required|string|max:255',
+            'description'   => 'required|string',
+            'base_price'    => 'required|numeric|min:0',
+            'category_id'   => 'required|exists:categories,id',
+            'images'        => 'nullable|array',
+            'sku'           => 'required|string|unique:product_variants,sku',
             'initial_stock' => 'required|integer|min:0',
         ]);
 
@@ -49,12 +52,12 @@ class ProductController extends Controller
 
         $variant = ProductVariant::create([
             'product_id' => $product->id,
-            'sku' => $validated['sku'],
-            'name' => 'Default',
+            'sku'        => $validated['sku'],
+            'name'       => 'Default',
         ]);
 
         Inventory::create([
-            'variant_id' => $variant->id,
+            'variant_id'     => $variant->id,
             'stock_quantity' => $validated['initial_stock'],
         ]);
 
@@ -79,12 +82,12 @@ class ProductController extends Controller
         $this->authorize('update', $product);
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'required|string',
-            'base_price' => 'required|numeric|min:0',
+            'base_price'  => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
-            'images' => 'nullable|array',
-            'is_active' => 'boolean',
+            'images'      => 'nullable|array',
+            'is_active'   => 'boolean',
         ]);
 
         $product->update($request->only('name', 'description', 'base_price', 'category_id', 'images', 'is_active'));

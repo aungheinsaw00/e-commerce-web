@@ -23,7 +23,7 @@ class OrderController extends Controller
             ->orderByDesc('created_at')
             ->paginate(15);
 
-        return view('orders.index', compact('orders'));
+        return view('orders', compact('orders'));
     }
 
     public function create(Request $request)

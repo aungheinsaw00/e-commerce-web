@@ -1,15 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>CarPart - @yield('title', 'Home')</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"/>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
-<body>
+<body class="font-sans antialiased bg-gray-50 text-gray-900">
+
+    @include('layouts.navigation')
+
+    {{-- Flash Messages --}}
     @if(session('success'))
-        <div>{{ session('success') }}</div>
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+             class="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-800 px-5 py-3 rounded-lg shadow-md text-sm flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            {{ session('success') }}
+        </div>
     @endif
-    @yield('content')
-    {{ $slot ?? '' }}
+    @if(session('error'))
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+             class="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-800 px-5 py-3 rounded-lg shadow-md text-sm flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 01-2 0V9zm0 6a1 1 0 112 0 1 1 0 01-2 0z" clip-rule="evenodd"/></svg>
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <main class="min-h-screen">
+        @yield('content')
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-10 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p class="font-semibold text-white mb-1">CarPart</p>
+            <p>&copy; {{ date('Y') }} CarPart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @stack('scripts')
 </body>
 </html>
+

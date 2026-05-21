@@ -15,7 +15,7 @@ class CartController extends Controller
         $cart = $this->cartService->getOrCreateCart($request->user());
         $summary = $this->cartService->getCartSummary($cart);
 
-        return view('cart.index', $summary);
+        return view('order_summary', $summary);
     }
 
     public function add(Request $request)
