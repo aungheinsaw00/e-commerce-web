@@ -1,77 +1,62 @@
-# CarPart E-Commerce Platform
+# Workflow Guideline
 
-A production-ready e-commerce platform built with Laravel 11. This project features robust inventory management, a secure pay-by-transfer flow with payment proof verification, and a dedicated admin interface.
+This document outlines the standard development workflow and implementation principles for the CarPart E-Commerce Platform.
 
-## Prerequisites
-- **WSL (Windows Subsystem for Linux)** if you are developing on Windows.
-- **Docker Desktop** (configured with WSL2 integration).
-- **Git**
+## 1. Development Workflow
 
-## Quick Start 
+### Developing in WSL
+The project relies on Docker (via Laravel Sail). To ensure proper file permissions and performance, always develop inside the WSL environment (e.g., store your files in the Linux filesystem like `~/your-project-folder` rather than mounted Windows drives).
 
-The project relies entirely on Docker. You can run it either from **Windows (PowerShell/CMD)** or **WSL**.
+1. Open your WSL terminal.
+2. Navigate to your project root directory.
+3. Bring up the containers: `./vendor/bin/sail up -d`
+4. Access the app via `http://localhost`.
 
-### 1. Start Docker Desktop
-Ensure Docker Desktop is running on Windows.
+### Artisan & Composer Commands
+Always run `php artisan` or `composer` using the Sail wrapper so they execute inside the container matching your production environment:
+- Adding a package: `./vendor/bin/sail composer require some/package`
+- Making a controller: `./vendor/bin/sail artisan make:controller SomeController`
+- Running tests: `./vendor/bin/sail test`
 
-### 2. Start the Containers
-**Option A: Using Windows (PowerShell/CMD)**
-If you are using a standard Windows terminal, Sail's bash script won't work natively. Use standard Docker Compose commands instead:
-```powershell
-docker compose up -d
-```
+### Node & NPM
+Since your project is stored in the Linux filesystem, run `npm` directly in your WSL terminal:
+- Install dependencies: `npm install`
+- Start dev server: `npm run dev`
 
-**Option B: Using WSL (Ubuntu)**
-If you prefer WSL, use the Sail script:
-```bash
-./vendor/bin/sail up -d
-```
-> [!WARNING]
-> **Docker command not found in WSL?**
-> Open Docker Desktop on Windows → Go to **Settings (Gear icon)** → **Resources** → **WSL Integration** → Check the box next to your Ubuntu distribution and click "Apply & Restart".
+*(Note: Never run `npm install` from a standard Windows CMD/PowerShell if your project is hosted in the Linux filesystem to avoid permission and UNC path errors).*
 
-### 3. Initialize the Database
-If this is your first time setting up, or if you need to reset the database, run the migrations and seeders.
-
-**From Windows:**
-```powershell
-docker compose exec laravel.test php artisan migrate:fresh --seed
-```
-
-**From WSL:**
-```bash
-./vendor/bin/sail artisan migrate:fresh --seed
-```
-
-### 4. Access the Application
-- **Storefront:** [http://localhost](http://localhost)
-- **Admin Dashboard:** [http://localhost/admin](http://localhost/admin)
-
-### Test Accounts
-The database seeder automatically creates the following accounts:
-- **Admin:** `admin@carpart.test` / `password`
-- **Customer:** `user@carpart.test` / `password`
+### Database Changes
+1. Create a migration: `./vendor/bin/sail artisan make:migration create_some_table`
+2. Update the corresponding Model and Factory.
+3. If necessary, update seeders in `database/seeders/`.
+4. Apply the change: `./vendor/bin/sail artisan migrate` (or `migrate:fresh --seed` if destroying data is acceptable).
 
 ---
 
-## Useful Commands
+## 2. Implementation Principles
 
-Run the automated test suite:
-```bash
-./vendor/bin/sail test
-```
+### Thin Controllers, Fat Services
+Controllers should only handle HTTP logic (Requests and Responses).
+- **Validation**: Use FormRequests or `$request->validate()` for simple rules.
+- **Business Logic**: Delegate to Service classes (e.g., `CartService`, `OrderService`, `InventoryService`).
+- **Responses**: Return views, redirects, or JSON resources. Do not perform DB transactions directly inside the controller.
 
-Access the application container's shell:
-```bash
-./vendor/bin/sail shell
-```
+### Safe Inventory Management
+Inventory is managed strictly through the `InventoryService`. 
+- Always use `lockForUpdate()` within a `DB::transaction()` when altering stock.
+- Never manipulate the `stock_quantity` or `reserved_quantity` fields directly from a controller. Use the provided service methods (`reserveStock`, `releaseStock`, `deductStock`) to ensure ACID compliance and prevent overselling.
 
-View application logs:
-```bash
-./vendor/bin/sail logs -f
-```
+### File Uploads & Duplication Detection
+Payment proofs (and other user-uploaded images) must be securely verified.
+- The `PaymentService` automatically generates a SHA-256 hash of uploaded files.
+- This hash is checked against existing records to prevent users from reusing old payment receipts for new orders.
 
-Stop the environment:
-```bash
-./vendor/bin/sail stop
-```
+### Authorization
+Do not rely on UI hiding alone to secure routes.
+- **Admin Routes**: Must be protected by the `auth` and `is_admin` middleware. Group admin routes under a `prefix('admin')` in `routes/web.php`.
+- **User Actions**: Use Laravel Policies (e.g., `OrderPolicy`) to ensure a user can only view or modify their own orders and carts.
+
+### Frontend Integration
+While the current application renders standard Blade stubs, it is structured to easily transition into an API.
+- Keep data preparation logically isolated from view rendering.
+- When transitioning to a modern SPA (like React/Vite), replace `return view(...)` in controllers with `return response()->json(...)` or use API Resources.
