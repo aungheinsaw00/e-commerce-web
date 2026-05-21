@@ -3,72 +3,65 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Services\DiscountService;
+use App\Services\CartService;
+use App\Services\OrderService;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly DiscountService $discountService)
-    {
-    }
+    public function __construct(
+        private readonly OrderService $orderService,
+        private readonly CartService $cartService,
+        private readonly PaymentService $paymentService,
+    ) {}
 
     public function index(Request $request)
     {
         $orders = Order::where('user_id', $request->user()->id)
-            ->with('orderItems.product')
-            ->orderByDesc('date_time')
-            ->get();
+            ->with('orderItems', 'latestPayment')
+            ->orderByDesc('created_at')
+            ->paginate(15);
 
         return view('orders.index', compact('orders'));
     }
 
     public function create(Request $request)
     {
-        $cart = session()->get('cart', []);
-        $summary = $this->discountService->summarizeCart($cart);
-        $cartItems = $summary['cartItems'];
-        $total = $summary['subtotal'];
-        $totalSavings = $summary['totalSavings'];
+        $cart = $this->cartService->getOrCreateCart($request->user());
+        $summary = $this->cartService->getCartSummary($cart);
 
-        return view('orders.create', compact('cartItems', 'total', 'totalSavings'));
+        return view('orders.create', compact('summary'));
     }
 
     public function store(Request $request)
     {
-        $cart = session()->get('cart', []);
-        $summary = $this->discountService->summarizeCart($cart);
-        $cartItems = $summary['cartItems'];
+        $request->validate([
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'payment_proof' => ['required', 'image', 'max:5120'], // 5MB max
+        ]);
 
-        if (empty($cartItems)) {
-            return redirect()->route('products.index')
-                ->with('error', 'Your cart is empty.');
-        }
+        $cart = $this->cartService->getOrCreateCart($request->user());
 
-        $order = DB::transaction(function () use ($request, $summary, $cartItems) {
-            $totalPrice = $summary['subtotal'];
+        try {
+            $order = $this->orderService->createFromCart(
+                $request->user(),
+                $cart,
+                $request->input('notes')
+            );
 
-            $order = Order::create([
-                'user_id' => $request->user()->id,
-                'date_time' => now(),
-                'total_price' => $totalPrice,
-                'status' => 'pending',
-            ]);
+            $payment = $this->paymentService->initiatePayment($order, 'transfer');
 
-            foreach ($cartItems as $item) {
-                $order->orderItems()->create([
-                    'product_id' => $item['product']->id,
-                    'quantity' => $item['quantity'],
-                    'price' => $item['product']->price,
-                ]);
+            if ($request->hasFile('payment_proof')) {
+                $this->paymentService->uploadProof($payment, $request->file('payment_proof'));
             }
 
-            return $order;
-        });
+            return redirect()->route('orders.index')
+                ->with('success', 'Order placed successfully! Your payment proof is being reviewed.');
 
-        session()->forget('cart');
-
-        return redirect()->route('orders.index')
-            ->with('success', 'Order placed successfully!');
+        } catch (\RuntimeException $e) {
+            return redirect()->route('cart.index')
+                ->with('error', $e->getMessage());
+        }
     }
 }

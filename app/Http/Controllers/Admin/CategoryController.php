@@ -5,51 +5,55 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::all();
-        return view('admin.categories.index', compact('categories'));
-    }
+        $this->authorize('viewAny', Category::class);
 
-    public function create()
-    {
-        return view('admin.categories.create');
+        $categories = Category::withCount('products')->get();
+        return view('admin.categories.index', compact('categories'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
+        $this->authorize('create', Category::class);
+
+        $request->validate(['name' => 'required|string|max:255']);
 
         Category::create($request->only('name'));
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully.');
-    }
+        Cache::forget('categories.active');
 
-    public function edit(Category $category)
-    {
-        return view('admin.categories.edit', compact('category'));
+        return redirect()->route('admin.categories.index')->with('success', 'Category created.');
     }
 
     public function update(Request $request, Category $category)
     {
+        $this->authorize('update', $category);
+
         $request->validate([
             'name' => 'required|string|max:255',
+            'is_active' => 'boolean',
         ]);
 
-        $category->update($request->only('name'));
+        $category->update($request->only('name', 'is_active'));
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully.');
+        Cache::forget('categories.active');
+
+        return redirect()->route('admin.categories.index')->with('success', 'Category updated.');
     }
 
     public function destroy(Category $category)
     {
+        $this->authorize('delete', $category);
+
         $category->delete();
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully.');
+        Cache::forget('categories.active');
+
+        return redirect()->route('admin.categories.index')->with('success', 'Category deleted.');
     }
 }

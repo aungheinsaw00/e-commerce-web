@@ -4,19 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Category extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
+    protected $fillable = ['name', 'slug', 'is_active'];
 
-    protected $fillable = [
-        'name',
-    ];
+    protected function casts(): array
+    {
+        return ['is_active' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Category $category) {
+            if (empty($category->slug)) {
+                $category->slug = Str::slug($category->name);
+            }
+        });
+    }
 
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function discounts()
+    {
+        return $this->hasMany(Discount::class);
     }
 }

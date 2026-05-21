@@ -1,169 +1,77 @@
-# Car Parts E-Commerce Store
+# CarPart E-Commerce Platform
 
-A Laravel web application for browsing and ordering car parts and accessories. Features product catalog, user registration, session-based cart, quantity-based discounts, and order history.
-
-## Features
-
-- **Public pages**: Home page with featured products, full product catalog with category names and prices
-- **Authentication**: Register (with phone number and address), login, logout via Laravel Breeze
-- **Shopping cart**: Session-based cart — add products, update quantities, remove items
-- **Order creation**: Confirm cart to create Order + OrderItem records with discount calculations
-- **Quantity discounts**: Automatic discounts when ordered quantity meets a product's minimum threshold
-- **Member pages**: Account info page, order history with item details
+A production-ready e-commerce platform built with Laravel 11. This project features robust inventory management, a secure pay-by-transfer flow with payment proof verification, and a dedicated admin interface.
 
 ## Prerequisites
+- **WSL (Windows Subsystem for Linux)** if you are developing on Windows.
+- **Docker Desktop** (configured with WSL2 integration).
+- **Git**
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+## Quick Start 
 
-## Setup (Docker with Laravel Sail)
+The project relies entirely on Docker. You can run it either from **Windows (PowerShell/CMD)** or **WSL**.
 
-### 1. Clone and install PHP dependencies
+### 1. Start Docker Desktop
+Ensure Docker Desktop is running on Windows.
 
-```bash
-git clone <repo-url> && cd project
-docker run --rm -v $(pwd):/var/www/html -w /var/www/html laravelsail/php85-composer:latest composer install
+### 2. Start the Containers
+**Option A: Using Windows (PowerShell/CMD)**
+If you are using a standard Windows terminal, Sail's bash script won't work natively. Use standard Docker Compose commands instead:
+```powershell
+docker compose up -d
 ```
 
-> This uses a temporary Docker container to run `composer install` without needing PHP or Composer on your host machine.
-
-### 2. Configure environment
-
-```bash
-cp .env.example .env
-```
-
-Open `.env` and update the database settings to use MySQL via Sail:
-
-```dotenv
-DB_CONNECTION=mysql
-DB_HOST=mysql
-DB_PORT=3306
-DB_DATABASE=sail
-DB_USERNAME=laravel
-DB_PASSWORD=password
-```
-
-> **Note:** The `DB_HOST` must be `mysql` (the Docker service name), not `localhost` or `127.0.0.1`.
-
-### 3. Start the containers
-
+**Option B: Using WSL (Ubuntu)**
+If you prefer WSL, use the Sail script:
 ```bash
 ./vendor/bin/sail up -d
 ```
+> [!WARNING]
+> **Docker command not found in WSL?**
+> Open Docker Desktop on Windows → Go to **Settings (Gear icon)** → **Resources** → **WSL Integration** → Check the box next to your Ubuntu distribution and click "Apply & Restart".
 
-This starts two containers:
-- **laravel.test** — the PHP application server (accessible at `http://localhost`)
-- **mysql** — a MySQL 8.4 database server
+### 3. Initialize the Database
+If this is your first time setting up, or if you need to reset the database, run the migrations and seeders.
 
-Wait a few seconds for MySQL to finish initializing on first start.
+**From Windows:**
+```powershell
+docker compose exec laravel.test php artisan migrate:fresh --seed
+```
 
-### 4. Generate app key, run migrations, and seed the database
-
+**From WSL:**
 ```bash
-./vendor/bin/sail artisan key:generate
-./vendor/bin/sail artisan migrate --seed
+./vendor/bin/sail artisan migrate:fresh --seed
 ```
 
-### 5. Install frontend dependencies and build assets
+### 4. Access the Application
+- **Storefront:** [http://localhost](http://localhost)
+- **Admin Dashboard:** [http://localhost/admin](http://localhost/admin)
 
+### Test Accounts
+The database seeder automatically creates the following accounts:
+- **Admin:** `admin@carpart.test` / `password`
+- **Customer:** `user@carpart.test` / `password`
+
+---
+
+## Useful Commands
+
+Run the automated test suite:
 ```bash
-./vendor/bin/sail npm install
-./vendor/bin/sail npm run build
+./vendor/bin/sail test
 ```
 
-For development with hot reloading:
-
+Access the application container's shell:
 ```bash
-./vendor/bin/sail npm run dev
+./vendor/bin/sail shell
 ```
 
-### 6. Visit the application
-
-Open `http://localhost` in your browser.
-
-## Common Sail Commands
-
-| Command | Description |
-|---|---|
-| `./vendor/bin/sail up -d` | Start containers in the background |
-| `./vendor/bin/sail down` | Stop containers |
-| `./vendor/bin/sail artisan migrate:fresh --seed` | Reset and re-seed the database |
-| `./vendor/bin/sail artisan tinker` | Open Laravel REPL |
-| `./vendor/bin/sail mysql` | Open a MySQL shell |
-| `./vendor/bin/sail npm run dev` | Start Vite dev server |
-| `./vendor/bin/sail test` | Run tests |
-
-## Troubleshooting
-
-### Access denied for MySQL user
-
-If you see `SQLSTATE[HY000] [1045] Access denied`, the MySQL volume was initialized with different credentials than your current `.env`. Fix by destroying the volume and restarting:
-
+View application logs:
 ```bash
-./vendor/bin/sail down -v
-./vendor/bin/sail up -d
-./vendor/bin/sail artisan migrate --seed
+./vendor/bin/sail logs -f
 ```
 
-> **Warning:** `sail down -v` deletes all database data. The `-v` flag removes Docker volumes.
-
-### Port conflicts
-
-If port 80 or 3306 is already in use, set alternative ports in `.env`:
-
-```dotenv
-APP_PORT=8080
-FORWARD_DB_PORT=3307
-```
-
-Then restart with `./vendor/bin/sail up -d`.
-
-### Connecting to MySQL from a GUI tool
-
-Use these settings in your database client (e.g., TablePlus, DBeaver):
-
-| Setting  | Value                          |
-|----------|--------------------------------|
-| Host     | `127.0.0.1`                    |
-| Port     | `3306` (or your `FORWARD_DB_PORT`) |
-| Database | `sail`                         |
-| Username | `laravel`                      |
-| Password | `password`                     |
-
-## Demo Credentials
-
-All seeded users use password: `password`
-
-| Name   | Email               |
-|--------|---------------------|
-| Wyco   | wyco@example.com    |
-| Joe    | joe@example.com     |
-| Anakin | anakin@example.com  |
-| Saw    | saw@example.com     |
-| Shiro  | shiro@example.com   |
-
-## Running Tests
-
+Stop the environment:
 ```bash
-php artisan test
+./vendor/bin/sail stop
 ```
-
-## Key Routes
-
-| Method | URI              | Name            | Description                  |
-|--------|------------------|-----------------|------------------------------|
-| GET    | /                | home            | Home page with featured products |
-| GET    | /products        | products.index  | Browse all products          |
-| GET    | /products/{id}   | products.show   | Product detail page          |
-| GET    | /register        | register        | Registration form            |
-| GET    | /login           | login           | Login form                   |
-| GET    | /cart            | cart.index      | View cart (auth)             |
-| POST   | /cart/{product}  | cart.add        | Add product to cart (auth)   |
-| GET    | /orders/create   | orders.create   | Review order before confirm  |
-| POST   | /orders          | orders.store    | Place order (auth)           |
-| GET    | /orders          | orders.index    | Order history (auth)         |
-| GET    | /account         | account.show    | Member info (auth)           |
-
-## Discount System
-
-Discounts are per-product and quantity-based. If a product has a discount with `min_quantity = 5` and `percentage = 20`, ordering 5+ units applies 20% off that line item's subtotal. Discount data is stored in the `discounts` table.

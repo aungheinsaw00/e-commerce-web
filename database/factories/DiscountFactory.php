@@ -2,20 +2,23 @@
 
 namespace Database\Factories;
 
-use App\Models\Discount;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class DiscountFactory extends Factory
 {
-    protected $model = Discount::class;
-
     public function definition(): array
     {
         return [
+            'name' => fake()->words(3, true) . ' discount',
             'product_id' => Product::factory(),
-            'min_quantity' => fake()->numberBetween(2, 10),
-            'percentage' => fake()->numberBetween(5, 30),
+            'category_id' => null,
+            'type' => 'percentage',
+            'value' => fake()->randomFloat(2, 5, 25),
+            'min_quantity' => 1,
+            'starts_at' => null,
+            'ends_at' => null,
+            'is_active' => true,
         ];
     }
 }

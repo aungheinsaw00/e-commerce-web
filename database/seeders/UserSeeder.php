@@ -10,16 +10,30 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        $users = [
-            ['name' => 'Wyco', 'email' => 'wyco@example.com', 'password' => Hash::make('password'), 'phone_num' => '555-0101', 'address' => '123 Main St'],
-            ['name' => 'Joe', 'email' => 'joe@example.com', 'password' => Hash::make('password'), 'phone_num' => '555-0102', 'address' => '456 Oak Ave'],
-            ['name' => 'Anakin', 'email' => 'anakin@example.com', 'password' => Hash::make('password'), 'phone_num' => '555-0103', 'address' => '789 Elm Blvd'],
-            ['name' => 'Saw', 'email' => 'saw@example.com', 'password' => Hash::make('password'), 'phone_num' => '555-0104', 'address' => '321 Pine Rd'],
-            ['name' => 'Shiro', 'email' => 'shiro@example.com', 'password' => Hash::make('password'), 'phone_num' => '555-0105', 'address' => '654 Cedar Ln'],
-        ];
+        User::updateOrCreate(
+            ['email' => 'admin@carpart.test'],
+            [
+                'name' => 'Admin User',
+                'email' => 'admin@carpart.test',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
 
-        foreach ($users as $user) {
-            User::updateOrCreate(['email' => $user['email']], $user);
-        }
+        User::updateOrCreate(
+            ['email' => 'user@carpart.test'],
+            [
+                'name' => 'Test Customer',
+                'email' => 'user@carpart.test',
+                'password' => Hash::make('password'),
+                'role' => 'user',
+                'is_active' => true,
+                'phone_num' => '+1234567890',
+                'address' => '123 Main Street, Test City',
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

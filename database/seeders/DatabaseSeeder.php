@@ -9,9 +9,6 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
@@ -19,8 +16,6 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             DiscountSeeder::class,
             UserSeeder::class,
-            OrderSeeder::class,
-            OrderItemSeeder::class,
         ]);
     }
 }

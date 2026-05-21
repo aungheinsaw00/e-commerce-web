@@ -10,14 +10,14 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Interior Accessories'],
-            ['name' => 'Cleaning Tools'],
-            ['name' => 'Electronics'],
-            ['name' => 'Safety'],
+            ['name' => 'Interior Accessories', 'slug' => 'interior-accessories'],
+            ['name' => 'Cleaning Supplies', 'slug' => 'cleaning-supplies'],
+            ['name' => 'Electronics', 'slug' => 'electronics'],
+            ['name' => 'Safety Equipment', 'slug' => 'safety-equipment'],
         ];
 
-        foreach ($categories as $category) {
-            Category::updateOrCreate(['name' => $category['name']], $category);
+        foreach ($categories as $cat) {
+            Category::updateOrCreate(['slug' => $cat['slug']], $cat);
         }
     }
 }

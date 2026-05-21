@@ -9,14 +9,20 @@ class OrderItem extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
-        'order_id',
-        'product_id',
-        'quantity',
-        'price',
+        'order_id', 'product_id', 'variant_id',
+        'product_name_snapshot', 'sku_snapshot',
+        'unit_price', 'discount_amount', 'final_price', 'quantity',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'unit_price' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'final_price' => 'decimal:2',
+        ];
+    }
 
     public function order()
     {
@@ -25,6 +31,16 @@ class OrderItem extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
+    }
+
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class);
+    }
+
+    public function getLineTotalAttribute(): float
+    {
+        return (float) $this->final_price * $this->quantity;
     }
 }

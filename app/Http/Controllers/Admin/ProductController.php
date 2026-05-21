@@ -5,60 +5,103 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariant;
+use App\Models\Inventory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')->get();
+        $this->authorize('viewAny', Product::class);
+
+        $products = Product::with('category', 'variants.inventory')
+            ->withTrashed()
+            ->paginate(20);
+
         return view('admin.products.index', compact('products'));
     }
 
     public function create()
     {
-        $categories = Category::all();
+        $this->authorize('create', Product::class);
+
+        $categories = Category::where('is_active', true)->get();
         return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $this->authorize('create', Product::class);
+
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
+            'base_price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
+            'images' => 'nullable|array',
+            'sku' => 'required|string|unique:product_variants,sku',
+            'initial_stock' => 'required|integer|min:0',
         ]);
 
-        Product::create($request->only('name', 'description', 'price', 'category_id'));
+        $product = Product::create($request->only('name', 'description', 'base_price', 'category_id', 'images'));
 
-        return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
+        $variant = ProductVariant::create([
+            'product_id' => $product->id,
+            'sku' => $validated['sku'],
+            'name' => 'Default',
+        ]);
+
+        Inventory::create([
+            'variant_id' => $variant->id,
+            'stock_quantity' => $validated['initial_stock'],
+        ]);
+
+        Cache::forget('home.featured');
+        Cache::forget('categories.active');
+
+        return redirect()->route('admin.products.index')->with('success', 'Product created.');
     }
 
     public function edit(Product $product)
     {
-        $categories = Category::all();
+        $this->authorize('update', $product);
+
+        $product->load('variants.inventory');
+        $categories = Category::where('is_active', true)->get();
+
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, Product $product)
     {
+        $this->authorize('update', $product);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
+            'base_price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
+            'images' => 'nullable|array',
+            'is_active' => 'boolean',
         ]);
 
-        $product->update($request->only('name', 'description', 'price', 'category_id'));
+        $product->update($request->only('name', 'description', 'base_price', 'category_id', 'images', 'is_active'));
 
-        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
+        Cache::forget('home.featured');
+
+        return redirect()->route('admin.products.index')->with('success', 'Product updated.');
     }
 
     public function destroy(Product $product)
     {
-        $product->delete();
+        $this->authorize('delete', $product);
 
-        return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
+        $product->delete(); // soft delete
+
+        Cache::forget('home.featured');
+
+        return redirect()->route('admin.products.index')->with('success', 'Product archived.');
     }
 }
