@@ -12,15 +12,17 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 'slug', 'description', 'category_id', 'base_price', 'images', 'is_active',
+        'name', 'slug', 'description', 'category_id', 'brand_id', 'made_in', 'compatibility',
+        'base_price', 'images', 'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'base_price' => 'decimal:2',
-            'images' => 'array',
-            'is_active' => 'boolean',
+            'base_price'    => 'decimal:2',
+            'images'        => 'array',
+            'compatibility' => 'array',
+            'is_active'     => 'boolean',
         ];
     }
 
@@ -36,6 +38,11 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
 
     public function variants()
