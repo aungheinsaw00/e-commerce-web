@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-200">
+<nav x-data="{ open: false }" class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -11,18 +11,18 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                <div class="hidden space-x-6 sm:-my-px sm:ms-8 sm:flex">
+                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-sm tracking-wide {{ request()->routeIs('home') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
                         {{ __('Home') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-sm tracking-wide {{ request()->routeIs('products.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
                         {{ __('Products') }}
                     </x-nav-link>
                     @auth
-                        <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
+                        <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')" class="text-sm tracking-wide {{ request()->routeIs('cart.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
                             {{ __('Cart') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                        <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')" class="text-sm tracking-wide {{ request()->routeIs('orders.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
                             {{ __('Orders') }}
                         </x-nav-link>
                     @endauth

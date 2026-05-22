@@ -3,10 +3,16 @@
 @section('content')
 
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <div class="flex items-center justify-between mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">My Orders</h1>
+    <div class="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">My Orders</h1>
+            @php $allOrdersTotal = Auth::user()->orders()->sum('total'); @endphp
+            @if($allOrdersTotal > 0)
+                <p class="text-sm text-gray-500 mt-2">Lifetime Total: <span class="font-bold text-gray-900">${{ number_format($allOrdersTotal, 2) }}</span></p>
+            @endif
+        </div>
         <a href="{{ route('products.index') }}"
-           class="text-sm border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition">
+           class="text-sm border border-gray-200 text-gray-700 px-5 py-2.5 rounded-full hover:border-black hover:text-black transition-colors font-medium">
             Continue Shopping
         </a>
     </div>
@@ -49,7 +55,10 @@
                         <p class="text-sm text-gray-500">{{ $order->created_at->format('M j, Y · g:i A') }}</p>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="text-lg font-bold text-gray-900">${{ number_format($order->total, 2) }}</span>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold block mb-0.5">Order Total</span>
+                            <span class="text-xl font-bold text-gray-900">${{ number_format($order->total, 2) }}</span>
+                        </div>
                         <span class="inline-block text-xs font-semibold px-3 py-1 rounded-full {{ $badge }}">
                             {{ ucwords($statusLabel) }}
                         </span>

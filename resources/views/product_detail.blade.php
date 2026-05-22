@@ -13,99 +13,101 @@
         <span class="text-gray-700 font-medium">{{ $product->name }}</span>
     </nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
 
         {{-- Product Image --}}
-        <div class="bg-gray-100 rounded-2xl flex items-center justify-center h-96">
-            <svg class="w-32 h-32 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        <div class="bg-[#f5f5f7] rounded-[2rem] flex items-center justify-center h-[30rem] lg:h-[40rem] p-12 relative">
+            <svg class="w-48 h-48 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
         </div>
 
         {{-- Product Info --}}
-        <div class="flex flex-col">
+        <div class="flex flex-col justify-center">
             @if($product->category)
-                <span class="text-sm text-gray-500 mb-2">{{ $product->category->name }}</span>
+                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase mb-4">{{ $product->category->name }}</span>
             @endif
 
-            <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ $product->name }}</h1>
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-6">{{ $product->name }}</h1>
 
             {{-- Price & Discount --}}
-            <div class="flex items-center gap-3 mb-4">
-                <span class="text-2xl font-bold text-gray-900">${{ number_format($product->base_price, 2) }}</span>
+            <div class="flex items-center gap-4 mb-8">
+                <span class="text-3xl font-bold text-gray-900">${{ number_format($product->base_price, 2) }}</span>
                 @php $activeDiscount = $product->discounts->first(); @endphp
                 @if($activeDiscount)
-                    <span class="bg-red-100 text-red-600 text-sm px-3 py-1 rounded-full font-semibold">
+                    <span class="bg-black text-white text-sm px-3 py-1 rounded-full font-bold tracking-wide">
                         {{ $activeDiscount->type === 'percentage' ? $activeDiscount->value.'% OFF' : '$'.$activeDiscount->value.' OFF' }}
                     </span>
                 @endif
             </div>
 
-            <p class="text-gray-600 leading-relaxed mb-6">{{ $product->description }}</p>
+            <p class="text-lg text-gray-600 leading-relaxed mb-10">{{ $product->description }}</p>
 
             {{-- Add to Cart Form --}}
-            @if($product->variants->isNotEmpty())
-                @auth
-                <form action="{{ route('cart.add') }}" method="POST" class="space-y-4">
-                    @csrf
+            <div class="bg-gray-50/50 p-8 rounded-3xl border border-gray-100/80">
+                @if($product->variants->isNotEmpty())
+                    @auth
+                    <form action="{{ route('cart.add') }}" method="POST" class="space-y-6">
+                        @csrf
 
-                    {{-- Variant select --}}
-                    @if($product->variants->count() > 1)
-                    <div>
-                        <label for="variant_id" class="block text-sm font-medium text-gray-700 mb-1">Variant</label>
-                        <select name="variant_id" id="variant_id"
-                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
-                            @foreach($product->variants as $variant)
-                                @if($variant->available_stock > 0)
-                                <option value="{{ $variant->id }}">
-                                    {{ $variant->name ?? 'Default' }}
-                                    @if($variant->price_override) — ${{ number_format($variant->price_override, 2) }} @endif
-                                    ({{ $variant->available_stock }} in stock)
-                                </option>
+                        {{-- Variant select --}}
+                        @if($product->variants->count() > 1)
+                        <div>
+                            <label for="variant_id" class="block text-sm font-semibold text-gray-900 mb-2">Variant</label>
+                            <select name="variant_id" id="variant_id"
+                                class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition shadow-sm appearance-none cursor-pointer">
+                                @foreach($product->variants as $variant)
+                                    @if($variant->available_stock > 0)
+                                    <option value="{{ $variant->id }}">
+                                        {{ $variant->name ?? 'Default' }}
+                                        @if($variant->price_override) — ${{ number_format($variant->price_override, 2) }} @endif
+                                        ({{ $variant->available_stock }} in stock)
+                                    </option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        @else
+                            <input type="hidden" name="variant_id" value="{{ $product->variants->first()->id }}">
+                            @php $defaultVariant = $product->variants->first(); @endphp
+                            <p class="text-sm text-gray-500 mb-4">
+                                Status:
+                                @if($defaultVariant->available_stock > 0)
+                                    <span class="text-green-600 font-semibold">{{ $defaultVariant->available_stock }} available in stock</span>
+                                @else
+                                    <span class="text-red-500 font-semibold">Out of stock</span>
                                 @endif
-                            @endforeach
-                        </select>
-                    </div>
+                            </p>
+                        @endif
+
+                        <div>
+                            <label for="quantity" class="block text-sm font-semibold text-gray-900 mb-2">Quantity</label>
+                            <input type="number" name="quantity" id="quantity" value="1" min="1"
+                                class="w-32 bg-white border border-gray-200 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition shadow-sm">
+                        </div>
+
+                        @php
+                            $totalStock = $product->variants->sum('available_stock');
+                        @endphp
+                        <button type="submit"
+                            @if($totalStock === 0) disabled @endif
+                            class="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition shadow-sm mt-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            @if($totalStock === 0) Out of Stock @else Add to Cart @endif
+                        </button>
+                    </form>
                     @else
-                        <input type="hidden" name="variant_id" value="{{ $product->variants->first()->id }}">
-                        @php $defaultVariant = $product->variants->first(); @endphp
-                        <p class="text-sm text-gray-500">
-                            Stock:
-                            @if($defaultVariant->available_stock > 0)
-                                <span class="text-green-600 font-medium">{{ $defaultVariant->available_stock }} available</span>
-                            @else
-                                <span class="text-red-500 font-medium">Out of stock</span>
-                            @endif
-                        </p>
-                    @endif
-
-                    <div>
-                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                        <input type="number" name="quantity" id="quantity" value="1" min="1"
-                            class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400">
+                    <div class="space-y-4">
+                        <a href="{{ route('login') }}"
+                           class="block text-center w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition shadow-sm">
+                            Log in to Add to Cart
+                        </a>
+                        <p class="text-sm text-gray-500 text-center">or <a href="{{ route('register') }}" class="text-black font-semibold hover:underline">create an account</a></p>
                     </div>
-
-                    @php
-                        $totalStock = $product->variants->sum('available_stock');
-                    @endphp
-                    <button type="submit"
-                        @if($totalStock === 0) disabled @endif
-                        class="w-full bg-gray-900 text-white font-semibold py-3 rounded-xl hover:bg-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        @if($totalStock === 0) Out of Stock @else Add to Cart @endif
-                    </button>
-                </form>
+                    @endauth
                 @else
-                <div class="space-y-3">
-                    <a href="{{ route('login') }}"
-                       class="block text-center w-full bg-gray-900 text-white font-semibold py-3 rounded-xl hover:bg-gray-700 transition">
-                        Log in to Add to Cart
-                    </a>
-                    <p class="text-sm text-gray-400 text-center">or <a href="{{ route('register') }}" class="underline">create an account</a></p>
-                </div>
-                @endauth
-            @else
-                <p class="text-gray-500 italic">No variants available for this product.</p>
-            @endif
+                    <p class="text-gray-500 italic text-center py-4">No variants available for this product.</p>
+                @endif
+            </div>
         </div>
     </div>
 </div>
