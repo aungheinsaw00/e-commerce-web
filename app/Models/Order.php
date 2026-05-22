@@ -10,6 +10,7 @@ class Order extends Model
     use HasFactory;
 
     const STATUS_PENDING = 'pending';
+    const STATUS_PENDING_PAYMENT = 'pending_payment';
     const STATUS_PAID = 'paid';
     const STATUS_PROCESSING = 'processing';
     const STATUS_SHIPPED = 'shipped';
@@ -17,8 +18,12 @@ class Order extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_REFUNDED = 'refunded';
 
+    protected $attributes = [
+        'currency' => 'USD',
+    ];
+
     protected $fillable = [
-        'user_id', 'status', 'subtotal', 'discount_total', 'total', 'currency', 'notes',
+        'user_id', 'payment_method_id', 'status', 'subtotal', 'discount_total', 'total', 'currency', 'notes',
     ];
 
     protected function casts(): array
@@ -33,6 +38,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function orderItems()
@@ -57,6 +67,6 @@ class Order extends Model
 
     public function isCancellable(): bool
     {
-        return in_array($this->status, [self::STATUS_PENDING]);
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PENDING_PAYMENT]);
     }
 }

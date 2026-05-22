@@ -17,9 +17,13 @@ class OrderService
         private readonly CartService $cartService,
     ) {}
 
-    public function createFromCart(User $user, Cart $cart, ?string $notes = null): Order
-    {
-        return DB::transaction(function () use ($user, $cart, $notes) {
+    public function createFromCart(
+        User $user,
+        Cart $cart,
+        int $paymentMethodId,
+        ?string $notes = null,
+    ): Order {
+        return DB::transaction(function () use ($user, $cart, $paymentMethodId, $notes) {
             $summary = $this->cartService->getCartSummary($cart);
 
             if (empty($summary['items'])) {
@@ -35,10 +39,12 @@ class OrderService
 
             $order = Order::create([
                 'user_id' => $user->id,
-                'status' => Order::STATUS_PENDING,
+                'payment_method_id' => $paymentMethodId,
+                'status' => Order::STATUS_PENDING_PAYMENT,
                 'subtotal' => $summary['subtotal'],
                 'discount_total' => $summary['discount_total'],
                 'total' => $summary['total'],
+                'currency' => 'USD',
                 'notes' => $notes,
             ]);
 

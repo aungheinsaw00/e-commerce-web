@@ -17,7 +17,10 @@ class DashboardController extends Controller
     {
         $stats = [
             'total_orders' => Order::count(),
-            'pending_orders' => Order::where('status', Order::STATUS_PENDING)->count(),
+            'pending_orders' => Order::whereIn('status', [
+                Order::STATUS_PENDING,
+                Order::STATUS_PENDING_PAYMENT,
+            ])->count(),
             'revenue' => Order::where('status', Order::STATUS_PAID)->sum('total'),
             'pending_payments' => Payment::where('status', Payment::STATUS_PENDING)
                 ->whereNotNull('proof_path')

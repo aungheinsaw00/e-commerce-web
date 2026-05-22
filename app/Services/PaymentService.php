@@ -13,14 +13,16 @@ class PaymentService
         private readonly OrderService $orderService,
     ) {}
 
-    public function initiatePayment(Order $order, string $provider = 'transfer'): Payment
+    public function initiatePayment(Order $order, ?string $provider = null): Payment
     {
+        $provider ??= $order->paymentMethod?->code ?? 'transfer';
+
         return Payment::create([
             'order_id' => $order->id,
             'provider' => $provider,
             'status' => Payment::STATUS_PENDING,
             'amount' => $order->total,
-            'currency' => $order->currency,
+            'currency' => $order->currency ?? 'USD',
         ]);
     }
 

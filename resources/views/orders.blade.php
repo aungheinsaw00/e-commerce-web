@@ -28,38 +28,41 @@
             @foreach($orders as $order)
             @php
                 $statusColors = [
-                    'pending'    => 'bg-yellow-100 text-yellow-700',
-                    'paid'       => 'bg-blue-100 text-blue-700',
-                    'processing' => 'bg-purple-100 text-purple-700',
-                    'shipped'    => 'bg-indigo-100 text-indigo-700',
-                    'completed'  => 'bg-green-100 text-green-700',
-                    'cancelled'  => 'bg-red-100 text-red-700',
-                    'refunded'   => 'bg-gray-100 text-gray-600',
+                    'pending'          => 'bg-yellow-100 text-yellow-700',
+                    'pending_payment'  => 'bg-amber-100 text-amber-800',
+                    'paid'             => 'bg-blue-100 text-blue-700',
+                    'processing'       => 'bg-purple-100 text-purple-700',
+                    'shipped'          => 'bg-indigo-100 text-indigo-700',
+                    'completed'        => 'bg-green-100 text-green-700',
+                    'cancelled'        => 'bg-red-100 text-red-700',
+                    'refunded'         => 'bg-gray-100 text-gray-600',
                 ];
                 $badge = $statusColors[$order->status] ?? 'bg-gray-100 text-gray-600';
+                $statusLabel = str_replace('_', ' ', $order->status);
             @endphp
             <div class="bg-white rounded-xl border border-gray-100 p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                     <div>
-                        <span class="text-xs text-gray-400">Order #{{ $order->id }}</span>
+                        <a href="{{ route('orders.show', $order) }}" class="text-xs text-gray-900 font-medium hover:underline">
+                            Order #{{ $order->id }} — Track order
+                        </a>
                         <p class="text-sm text-gray-500">{{ $order->created_at->format('M j, Y · g:i A') }}</p>
                     </div>
                     <div class="flex items-center gap-4">
                         <span class="text-lg font-bold text-gray-900">${{ number_format($order->total, 2) }}</span>
                         <span class="inline-block text-xs font-semibold px-3 py-1 rounded-full {{ $badge }}">
-                            {{ ucfirst($order->status) }}
+                            {{ ucwords($statusLabel) }}
                         </span>
                     </div>
                 </div>
 
-                {{-- Order Items Preview --}}
                 @if($order->orderItems->isNotEmpty())
                 <div class="border-t border-gray-50 pt-3 mt-3">
                     <div class="space-y-1">
                         @foreach($order->orderItems->take(3) as $item)
                         <div class="flex justify-between text-sm text-gray-600">
-                            <span class="line-clamp-1">{{ $item->product_name ?? 'Product' }} × {{ $item->quantity }}</span>
-                            <span>${{ number_format($item->line_total, 2) }}</span>
+                            <span class="line-clamp-1">{{ $item->product_name_snapshot }} × {{ $item->quantity }}</span>
+                            <span>${{ number_format($item->final_price * $item->quantity, 2) }}</span>
                         </div>
                         @endforeach
                         @if($order->orderItems->count() > 3)
@@ -69,14 +72,19 @@
                 </div>
                 @endif
 
-                {{-- Payment Status --}}
-                @if($order->latestPayment)
-                <div class="mt-3 pt-3 border-t border-gray-50 text-xs text-gray-500 flex items-center gap-2">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                    </svg>
-                    Payment: <span class="font-medium capitalize">{{ $order->latestPayment->status ?? 'pending' }}</span>
-                    ({{ $order->latestPayment->method ?? 'transfer' }})
+                @if($order->status === 'pending_payment' && !$order->latestPayment?->proof_path)
+                <div class="mt-3 pt-3 border-t border-gray-50">
+                    <a href="{{ route('orders.payment', $order) }}"
+                       class="text-xs font-medium text-amber-700 hover:underline">
+                        Submit payment proof →
+                    </a>
+                </div>
+                @elseif($order->paymentMethod)
+                <div class="mt-3 pt-3 border-t border-gray-50 text-xs text-gray-500">
+                    Payment method: <span class="font-medium text-gray-700">{{ $order->paymentMethod->name }}</span>
+                    @if($order->latestPayment?->proof_path)
+                    · Proof submitted
+                    @endif
                 </div>
                 @endif
             </div>

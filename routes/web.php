@@ -23,10 +23,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/cart', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart', [CartController::class, 'remove'])->name('cart.remove');
 
-    // Orders
+    // Orders & checkout
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders/checkout/method', [OrderController::class, 'selectPaymentMethod'])->name('orders.checkout.method');
+    Route::get('/orders/checkout/instructions', [OrderController::class, 'showInstructions'])->name('orders.checkout.instructions');
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}/payment', [OrderController::class, 'payment'])->name('orders.payment');
+    Route::post('/orders/{order}/payment', [OrderController::class, 'submitPayment'])->name('orders.payment.submit');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -44,6 +49,8 @@ Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(
     Route::get('orders', [Admin\OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [Admin\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::post('orders/{order}/mark-paid', [Admin\OrderController::class, 'markPaid'])->name('orders.markPaid');
+    Route::get('payments/{payment}/proof', [Admin\OrderController::class, 'downloadProof'])->name('payments.proof');
     Route::post('payments/{payment}/verify', [Admin\OrderController::class, 'verifyPayment'])->name('payments.verify');
     Route::post('payments/{payment}/reject', [Admin\OrderController::class, 'rejectPayment'])->name('payments.reject');
 

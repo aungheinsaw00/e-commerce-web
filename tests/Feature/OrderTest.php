@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Discount;
 use App\Models\Inventory;
 use App\Models\Order;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
@@ -17,6 +18,11 @@ use Tests\TestCase;
 class OrderTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function paymentMethodId(): int
+    {
+        return PaymentMethod::factory()->create()->id;
+    }
 
     private function createProductWithStock(array $overrides = [], int $stock = 50): array
     {
@@ -48,9 +54,9 @@ class OrderTest extends TestCase
         $cartService->addItem($cart, $data['variant']->id, 3);
 
         $orderService = app(OrderService::class);
-        $order = $orderService->createFromCart($user, $cart);
+        $order = $orderService->createFromCart($user, $cart, $this->paymentMethodId());
 
-        $this->assertEquals('pending', $order->status);
+        $this->assertEquals('pending_payment', $order->status);
         $this->assertEquals(45.00, (float) $order->total);
         $this->assertCount(1, $order->orderItems);
         $this->assertEquals(3, $order->orderItems->first()->quantity);
@@ -66,7 +72,7 @@ class OrderTest extends TestCase
         $cartService->addItem($cart, $data['variant']->id, 5);
 
         $orderService = app(OrderService::class);
-        $orderService->createFromCart($user, $cart);
+        $orderService->createFromCart($user, $cart, $this->paymentMethodId());
 
         $data['inventory']->refresh();
         $this->assertEquals(5, $data['inventory']->reserved_quantity);
@@ -85,7 +91,7 @@ class OrderTest extends TestCase
         $this->expectException(\RuntimeException::class);
 
         $orderService = app(OrderService::class);
-        $orderService->createFromCart($user, $cart);
+        $orderService->createFromCart($user, $cart, $this->paymentMethodId());
     }
 
     public function test_order_creation_clears_cart(): void
@@ -98,7 +104,7 @@ class OrderTest extends TestCase
         $cartService->addItem($cart, $data['variant']->id, 2);
 
         $orderService = app(OrderService::class);
-        $orderService->createFromCart($user, $cart);
+        $orderService->createFromCart($user, $cart, $this->paymentMethodId());
 
         $this->assertEquals(0, $cart->fresh()->items()->count());
     }
@@ -113,7 +119,7 @@ class OrderTest extends TestCase
         $cartService->addItem($cart, $data['variant']->id, 5);
 
         $orderService = app(OrderService::class);
-        $order = $orderService->createFromCart($user, $cart);
+        $order = $orderService->createFromCart($user, $cart, $this->paymentMethodId());
 
         $this->assertEquals(5, $data['inventory']->fresh()->reserved_quantity);
 
@@ -146,7 +152,7 @@ class OrderTest extends TestCase
         $cartService->addItem($cart, $data['variant']->id, 2);
 
         $orderService = app(OrderService::class);
-        $order = $orderService->createFromCart($user, $cart);
+        $order = $orderService->createFromCart($user, $cart, $this->paymentMethodId());
 
         // 2 x $20 = $40 subtotal, 10% off = $4 discount
         $this->assertEquals(40.00, (float) $order->subtotal);
@@ -172,7 +178,7 @@ class OrderTest extends TestCase
         $cartService->addItem($cart, $data['variant']->id, 2);
 
         $orderService = app(OrderService::class);
-        $order = $orderService->createFromCart($user, $cart);
+        $order = $orderService->createFromCart($user, $cart, $this->paymentMethodId());
 
         $this->assertEquals(20.00, (float) $order->subtotal);
         $this->assertEquals(0.00, (float) $order->discount_total);
