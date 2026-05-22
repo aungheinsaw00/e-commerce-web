@@ -26,11 +26,9 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             @foreach($categories as $category)
             <a href="{{ route('products.index', ['category' => $category->id]) }}"
-               class="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition border border-gray-100">
-                <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-3">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                    </svg>
+               class="flex flex-col items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 hover:shadow-md transition-all duration-300 border border-gray-100 group">
+                <div class="w-12 h-12 bg-gray-200 group-hover:bg-gray-900 group-hover:scale-110 rounded-full flex items-center justify-center mb-3 transition-all duration-300">
+                    <x-category-icon :name="$category->name" class="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-300" />
                 </div>
                 <span class="text-sm font-medium text-gray-700 text-center">{{ $category->name }}</span>
             </a>
