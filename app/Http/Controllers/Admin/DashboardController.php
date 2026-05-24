@@ -21,7 +21,7 @@ class DashboardController extends Controller
                 Order::STATUS_PENDING,
                 Order::STATUS_PENDING_PAYMENT,
             ])->count(),
-            'revenue' => Order::where('status', Order::STATUS_PAID)->sum('total'),
+            'revenue' => Order::whereIn('status', ['paid', 'confirmed', 'shipped'])->sum('total'),
             'pending_payments' => Payment::where('status', Payment::STATUS_PENDING)
                 ->whereNotNull('proof_path')
                 ->count(),
@@ -30,7 +30,7 @@ class DashboardController extends Controller
         $lowStock = $this->inventoryService->getLowStockVariants();
 
         $recentOrders = Order::with('user', 'latestPayment')
-            ->orderByDesc('created_at')
+            ->latest()
             ->take(10)
             ->get();
 

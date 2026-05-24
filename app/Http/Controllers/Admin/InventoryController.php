@@ -24,19 +24,27 @@ class InventoryController extends Controller
 
     public function adjust(Request $request, ProductVariant $variant)
     {
-        $request->validate([
-            'quantity' => ['required', 'integer'],
-            'note' => ['nullable', 'string', 'max:500'],
+        $request->merge(['variant_id' => $variant->id]);
+
+        $validated = $request->validate([
+            'variant_id' => 'required|exists:product_variants,id',
+            'quantity' => 'required|integer|min:1',
+            'note' => 'nullable|string'
         ]);
 
-        $this->inventoryService->adjustStock(
-            $variant->id,
-            $request->integer('quantity'),
-            $request->input('note', '')
-        );
+        $inventory = Inventory::where('variant_id', $validated['variant_id'])->firstOrFail();
+        $inventory->increment('stock_quantity', $validated['quantity']);
 
-        return redirect()->route('admin.inventory.index')
-            ->with('success', 'Stock adjusted.');
+        InventoryMovement::create([
+            'variant_id' => $validated['variant_id'],
+            'type' => InventoryMovement::TYPE_IN,
+            'quantity' => $validated['quantity'],
+            'reference_type' => 'admin_adjust',
+            'reference_id' => auth()->id(),
+            'note' => $validated['note'],
+        ]);
+
+        return redirect()->back()->with('success', 'Stock adjusted.');
     }
 
     public function movements(Request $request)

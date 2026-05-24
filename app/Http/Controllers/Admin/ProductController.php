@@ -15,15 +15,20 @@ class ProductController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Product::class);
 
-        $products = Product::with('category', 'variants.inventory')
-            ->withTrashed()
-            ->paginate(20);
+        $query = Product::with('category', 'variants.inventory')->withTrashed();
 
-        return view('admin.products.index', compact('products'));
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $products = $query->paginate(20)->withQueryString();
+        $categories = Category::all();
+
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     public function create()
@@ -43,12 +48,18 @@ class ProductController extends Controller
             'description'   => 'required|string',
             'base_price'    => 'required|numeric|min:0',
             'category_id'   => 'required|exists:categories,id',
-            'images'        => 'nullable|array',
+            'image'         => 'nullable|image|max:2048',
             'sku'           => 'required|string|unique:product_variants,sku',
             'initial_stock' => 'required|integer|min:0',
         ]);
 
-        $product = Product::create($request->only('name', 'description', 'base_price', 'category_id', 'images'));
+        $data = $request->only('name', 'description', 'base_price', 'category_id');
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $data['images'] = [$path];
+        }
+
+        $product = Product::create($data);
 
         $variant = ProductVariant::create([
             'product_id' => $product->id,
@@ -86,11 +97,17 @@ class ProductController extends Controller
             'description' => 'required|string',
             'base_price'  => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
-            'images'      => 'nullable|array',
+            'image'       => 'nullable|image|max:2048',
             'is_active'   => 'boolean',
         ]);
 
-        $product->update($request->only('name', 'description', 'base_price', 'category_id', 'images', 'is_active'));
+        $data = $request->only('name', 'description', 'base_price', 'category_id', 'is_active');
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $data['images'] = [$path];
+        }
+
+        $product->update($data);
 
         Cache::forget('home.featured');
 

@@ -64,4 +64,9 @@ class Product extends Model
     {
         return (float) $this->base_price;
     }
+
+    public function getImagePathAttribute()
+    {
+        return $this->images[0] ?? null;
+    }
 }

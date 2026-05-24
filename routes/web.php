@@ -10,13 +10,15 @@ use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
-Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::middleware('redirect_admin')->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+});
 
 // Authenticated routes
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'redirect_admin'])->group(function () {
     // Cart (DB-based)
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart', [CartController::class, 'add'])->name('cart.add');
@@ -43,6 +45,9 @@ Route::middleware('auth')->group(function () {
 Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
+    Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('inventory/{variant}/adjust', [Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');
+
     Route::resource('products', Admin\ProductController::class)->except(['show']);
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);
 
@@ -54,9 +59,6 @@ Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(
     Route::post('payments/{payment}/verify', [Admin\OrderController::class, 'verifyPayment'])->name('payments.verify');
     Route::post('payments/{payment}/reject', [Admin\OrderController::class, 'rejectPayment'])->name('payments.reject');
 
-    Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory.index');
-    Route::post('inventory/{variant}/adjust', [Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');
-    Route::get('inventory/movements', [Admin\InventoryController::class, 'movements'])->name('inventory.movements');
 });
 
 // Dashboard redirect for Breeze compatibility

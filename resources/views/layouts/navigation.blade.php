@@ -12,19 +12,33 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-6 sm:-my-px sm:ms-8 sm:flex">
-                    <x-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-sm tracking-wide {{ request()->routeIs('home') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
-                        {{ __('Home') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-sm tracking-wide {{ request()->routeIs('products.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
-                        {{ __('Products') }}
-                    </x-nav-link>
+                    @if(!Auth::check() || Auth::user()->role !== 'admin')
+                        <x-nav-link :href="route('home')" :active="request()->routeIs('home')" class="text-sm tracking-wide {{ request()->routeIs('home') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
+                            {{ __('Home') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')" class="text-sm tracking-wide {{ request()->routeIs('products.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
+                            {{ __('Products') }}
+                        </x-nav-link>
+                    @endif
                     @auth
-                        <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')" class="text-sm tracking-wide {{ request()->routeIs('cart.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
-                            {{ __('Cart') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')" class="text-sm tracking-wide {{ request()->routeIs('orders.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
-                            {{ __('Orders') }}
-                        </x-nav-link>
+                        @if(Auth::user()->role === 'admin')
+                            <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')" class="text-sm tracking-wide {{ request()->routeIs('admin.dashboard') ? 'text-black font-bold' : 'text-gray-500 hover:text-black transition-colors' }}">
+                                {{ __('Dashboard') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')" class="text-sm tracking-wide {{ request()->routeIs('admin.products.*') ? 'text-black font-bold' : 'text-gray-500 hover:text-black transition-colors' }}">
+                                {{ __('Products') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')" class="text-sm tracking-wide {{ request()->routeIs('admin.orders.*') ? 'text-black font-bold' : 'text-gray-500 hover:text-black transition-colors' }}">
+                                {{ __('Orders') }}
+                            </x-nav-link>
+                        @else
+                            <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')" class="text-sm tracking-wide {{ request()->routeIs('cart.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
+                                {{ __('Cart') }}
+                            </x-nav-link>
+                            <x-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')" class="text-sm tracking-wide {{ request()->routeIs('orders.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
+                                {{ __('Orders') }}
+                            </x-nav-link>
+                        @endif
                     @endauth
                 </div>
             </div>
@@ -67,19 +81,33 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">
-                {{ __('Home') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
-                {{ __('Products') }}
-            </x-responsive-nav-link>
+            @if(!Auth::check() || Auth::user()->role !== 'admin')
+                <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">
+                    {{ __('Home') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                    {{ __('Products') }}
+                </x-responsive-nav-link>
+            @endif
             @auth
-                <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
-                    {{ __('Cart') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
-                    {{ __('Orders') }}
-                </x-responsive-nav-link>
+                @if(Auth::user()->role === 'admin')
+                    <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                        {{ __('Dashboard') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
+                        {{ __('Products') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
+                        {{ __('Orders') }}
+                    </x-responsive-nav-link>
+                @else
+                    <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
+                        {{ __('Cart') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('orders.index')" :active="request()->routeIs('orders.*')">
+                        {{ __('Orders') }}
+                    </x-responsive-nav-link>
+                @endif
             @endauth
         </div>
 

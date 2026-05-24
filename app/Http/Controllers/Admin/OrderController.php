@@ -42,7 +42,7 @@ class OrderController extends Controller
             abort(404);
         }
 
-        return Storage::disk('private')->download($payment->proof_path);
+        return Storage::disk('private')->response($payment->proof_path);
     }
 
     public function markPaid(Order $order)
@@ -77,7 +77,16 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => ['required', 'string', 'in:processing,shipped,completed'],
+            'status' => ['required', 'string', 'in:' . implode(',', [
+                Order::STATUS_PENDING,
+                Order::STATUS_PENDING_PAYMENT,
+                Order::STATUS_PAID,
+                Order::STATUS_PROCESSING,
+                Order::STATUS_SHIPPED,
+                Order::STATUS_COMPLETED,
+                Order::STATUS_CANCELLED,
+                Order::STATUS_REFUNDED,
+            ])],
         ]);
 
         $order->update(['status' => $request->input('status')]);
