@@ -46,7 +46,7 @@
                     <h3 class="font-semibold text-lg text-gray-800">Recent Orders</h3>
                     <a href="{{ route('admin.orders.index') }}" class="text-sm text-blue-600 hover:text-blue-800">View All</a>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -57,14 +57,14 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($recentOrders as $order)
+                            @forelse($recentOrders->sortByDesc('created_at') as $order)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <td class="px-6 py-4 text-sm font-medium break-words">
                                         <a href="{{ route('admin.orders.show', $order) }}" class="text-blue-600 hover:text-blue-900">#{{ $order->id }}</a>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $order->user->name ?? 'Guest' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ $order->total }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 text-sm text-gray-500 break-words">{{ $order->user->name ?? 'Guest' }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">${{ $order->total }}</td>
+                                    <td class="px-6 py-4 break-words">
                                         @php
                                             $badgeClass = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ';
                                             if(in_array($order->status, ['completed', 'paid', 'shipped'])) $badgeClass .= 'bg-green-100 text-green-800';
@@ -76,7 +76,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No recent orders found.</td>
+                                    <td colspan="4" class="px-6 py-4 text-sm text-gray-500 text-center">No recent orders found.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -93,7 +93,7 @@
                     </h3>
                     <a href="{{ route('admin.products.index') }}" class="text-sm text-blue-600 hover:text-blue-800">Manage Stock</a>
                 </div>
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -105,12 +105,12 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($lowStock as $inventory)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td class="px-6 py-4 text-sm text-gray-900 break-words">
                                         <div class="font-medium">{{ $inventory->variant->product->name }}</div>
                                         <div class="text-gray-500">{{ $inventory->variant->name }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inventory->variant->sku }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <td class="px-6 py-4 text-sm text-gray-500 break-words">{{ $inventory->variant->sku }}</td>
+                                    <td class="px-6 py-4 text-sm">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                             {{ $inventory->stock_quantity }} left
                                         </span>
@@ -118,7 +118,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No low stock alerts.</td>
+                                    <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">No low stock alerts.</td>
                                 </tr>
                             @endforelse
                         </tbody>

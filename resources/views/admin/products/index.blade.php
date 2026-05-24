@@ -55,7 +55,7 @@
         </aside>
 
         {{-- Product Grid --}}
-        <div class="flex-1">
+        <div class="flex-1 min-w-0">
             @if($products->isEmpty())
                 <div class="text-center py-20 bg-white rounded-xl border border-gray-100">
                     <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

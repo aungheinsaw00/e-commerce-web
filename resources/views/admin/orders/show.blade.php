@@ -31,7 +31,7 @@
                         @endphp
                         <span class="{{ $badgeClass }}">{{ str_replace('_', ' ', $order->status) }}</span>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="w-full overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -45,11 +45,11 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($order->orderItems as $item)
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $item->product_name_snapshot }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $item->sku_snapshot }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ $item->quantity }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">${{ number_format($item->final_price, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">${{ number_format($item->final_price * $item->quantity, 2) }}</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900 break-words">{{ $item->product_name_snapshot }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-500 break-words">{{ $item->sku_snapshot }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-500 text-center">{{ $item->quantity }}</td>
+                                        <td class="px-6 py-4 text-sm text-gray-900 text-right">${{ number_format($item->final_price, 2) }}</td>
+                                        <td class="px-6 py-4 text-sm font-bold text-gray-900 text-right">${{ number_format($item->final_price * $item->quantity, 2) }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -126,7 +126,7 @@
                             @csrf
                             @method('PATCH')
                             <div class="mb-4">
-                                <select name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" required>
+                                <select name="status" class="mt-1 block w-full min-w-0 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" required>
                                     <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
                                     <option value="pending_payment" {{ $order->status == 'pending_payment' ? 'selected' : '' }}>Pending Payment</option>
                                     <option value="paid" {{ $order->status == 'paid' ? 'selected' : '' }}>Paid</option>
@@ -217,6 +217,9 @@
                             <div class="mt-4 text-sm text-gray-500 italic">
                                 No payment details recorded yet.
                             </div>
+                        @endif
+                        @if($order->payment_proof)
+                            <img src="{{ asset($order->payment_proof) }}" />
                         @endif
                     </div>
                 </div>

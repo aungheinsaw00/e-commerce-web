@@ -15,7 +15,7 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="antialiased bg-[#fbfbfd] text-[#1d1d1f]">
+<body class="antialiased bg-[#fbfbfd] text-[#1d1d1f] overflow-x-hidden flex flex-col min-h-screen">
 
     @include('layouts.navigation')
 
@@ -35,7 +35,7 @@
         </div>
     @endif
 
-    <main class="min-h-screen">
+    <main class="flex-1 min-w-0 w-full">
         @yield('content')
     </main>
 

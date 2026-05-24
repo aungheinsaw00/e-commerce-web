@@ -16,10 +16,10 @@
             <div class="p-6 border-b border-gray-200">
                 
                 <!-- Filters -->
-                <form method="GET" action="{{ route('admin.orders.index') }}" class="flex items-end gap-4 mb-6">
-                    <div>
+                <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-wrap items-end gap-4 mb-6 w-full">
+                    <div class="min-w-0 flex-1 md:flex-none">
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
-                        <select name="status" id="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" onchange="this.form.submit()">
+                        <select name="status" id="status" class="mt-1 block w-full min-w-0 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md" onchange="this.form.submit()">
                             <option value="">All Statuses</option>
                             <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="pending_payment" {{ request('status') == 'pending_payment' ? 'selected' : '' }}>Pending Payment</option>
@@ -36,7 +36,7 @@
                     @endif
                 </form>
 
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -54,20 +54,20 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($orders as $order)
                                 <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900 break-words">
                                         #{{ $order->id }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 break-words">
                                         <div class="text-sm text-gray-900">{{ $order->user->name ?? 'Guest' }}</div>
                                         <div class="text-sm text-gray-500">{{ $order->user->email ?? '' }}</div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td class="px-6 py-4 text-sm text-gray-500">
                                         {{ $order->created_at->format('M d, Y H:i') }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td class="px-6 py-4 text-sm font-medium text-gray-900">
                                         ${{ number_format($order->total, 2) }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 break-words">
                                         @if($order->latestPayment)
                                             <div class="text-sm text-gray-900">{{ ucfirst($order->latestPayment->payment_method) }}</div>
                                             <div class="text-xs">
@@ -83,7 +83,7 @@
                                             <span class="text-sm text-gray-500">N/A</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 break-words">
                                         @php
                                             $badgeClass = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ';
                                             if(in_array($order->status, ['completed', 'paid', 'shipped'])) $badgeClass .= 'bg-green-100 text-green-800';
@@ -92,7 +92,7 @@
                                         @endphp
                                         <span class="{{ $badgeClass }}">{{ str_replace('_', ' ', $order->status) }}</span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td class="px-6 py-4 text-right text-sm font-medium break-words">
                                         <a href="{{ route('admin.orders.show', $order) }}" class="text-blue-600 hover:text-blue-900">View details</a>
                                     </td>
                                 </tr>

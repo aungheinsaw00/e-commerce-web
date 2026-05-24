@@ -45,8 +45,6 @@ Route::middleware(['auth', 'redirect_admin'])->group(function () {
 Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('inventory', [Admin\InventoryController::class, 'index'])->name('inventory.index');
-    Route::post('inventory/{variant}/adjust', [Admin\InventoryController::class, 'adjust'])->name('inventory.adjust');
 
     Route::resource('products', Admin\ProductController::class)->except(['show']);
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);

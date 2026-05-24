@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('home') }}">
-                        <x-application-logo class="block h-9 w-auto" />
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="block h-9 w-auto" />
                     </a>
                 </div>
 
@@ -30,6 +30,10 @@
                             </x-nav-link>
                             <x-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')" class="text-sm tracking-wide {{ request()->routeIs('admin.orders.*') ? 'text-black font-bold' : 'text-gray-500 hover:text-black transition-colors' }}">
                                 {{ __('Orders') }}
+                            </x-nav-link>
+
+                            <x-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')" class="text-sm tracking-wide {{ request()->routeIs('admin.categories.*') ? 'text-black font-bold' : 'text-gray-500 hover:text-black transition-colors' }}">
+                                {{ __('Categories') }}
                             </x-nav-link>
                         @else
                             <x-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')" class="text-sm tracking-wide {{ request()->routeIs('cart.*') ? 'text-black' : 'text-gray-500 hover:text-black transition-colors' }}">
@@ -99,6 +103,10 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.orders.index')" :active="request()->routeIs('admin.orders.*')">
                         {{ __('Orders') }}
+                    </x-responsive-nav-link>
+
+                    <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
+                        {{ __('Categories') }}
                     </x-responsive-nav-link>
                 @else
                     <x-responsive-nav-link :href="route('cart.index')" :active="request()->routeIs('cart.*')">
