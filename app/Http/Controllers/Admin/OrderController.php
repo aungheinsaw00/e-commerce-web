@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Exceptions\InvalidOrderTransitionException;
+use App\Services\OrderService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,8 +14,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly PaymentService $paymentService)
-    {}
+    public function __construct(
+        private readonly PaymentService $paymentService,
+        private readonly OrderService $orderService,
+    ) {}
 
     public function index(Request $request)
     {
@@ -76,20 +80,33 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, Order $order)
     {
+        $allowedStatuses = [
+            Order::STATUS_PENDING,
+            Order::STATUS_PENDING_PAYMENT,
+            Order::STATUS_PAID,
+            Order::STATUS_PROCESSING,
+            Order::STATUS_SHIPPED,
+            Order::STATUS_COMPLETED,
+            Order::STATUS_CANCELLED,
+            Order::STATUS_REFUNDED,
+            'return_requested',
+            'returned',
+        ];
+
         $request->validate([
-            'status' => ['required', 'string', 'in:' . implode(',', [
-                Order::STATUS_PENDING,
-                Order::STATUS_PENDING_PAYMENT,
-                Order::STATUS_PAID,
-                Order::STATUS_PROCESSING,
-                Order::STATUS_SHIPPED,
-                Order::STATUS_COMPLETED,
-                Order::STATUS_CANCELLED,
-                Order::STATUS_REFUNDED,
-            ])],
+            'status' => ['required', 'string', 'in:' . implode(',', $allowedStatuses)],
+            'note'   => ['nullable', 'string', 'max:500'],
         ]);
 
-        $order->update(['status' => $request->input('status')]);
+        try {
+            $this->orderService->updateStatus(
+                $order,
+                $request->input('status'),
+                $request->input('note'),
+            );
+        } catch (InvalidOrderTransitionException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Order status updated.');
     }

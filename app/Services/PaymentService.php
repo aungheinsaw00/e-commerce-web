@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentService
@@ -20,8 +21,8 @@ class PaymentService
         return Payment::create([
             'order_id' => $order->id,
             'provider' => $provider,
-            'status' => Payment::STATUS_PENDING,
-            'amount' => $order->total,
+            'status'   => Payment::STATUS_PENDING,
+            'amount'   => $order->total,
             'currency' => $order->currency ?? 'USD',
         ]);
     }
@@ -49,22 +50,38 @@ class PaymentService
         return $payment->fresh();
     }
 
+    /**
+     * Verify a payment and confirm the associated order.
+     * Uses idempotency guard: only processes if order is still in pending_payment state.
+     */
     public function verifyPayment(Payment $payment): void
     {
-        $payment->update([
-            'status' => Payment::STATUS_VERIFIED,
-            'paid_at' => now(),
-        ]);
+        // Reload order with lock to check idempotency
+        $order = Order::lockForUpdate()->findOrFail($payment->order_id);
 
-        $this->orderService->markAsPaid($payment->order, $payment);
+        // Idempotency: skip if already processed
+        if ($order->status !== Order::STATUS_PENDING_PAYMENT) {
+            return;
+        }
+
+        DB::transaction(function () use ($payment, $order) {
+            $payment->update([
+                'status'  => Payment::STATUS_VERIFIED,
+                'paid_at' => now(),
+            ]);
+
+            $this->orderService->markAsPaid($order, $payment);
+        });
     }
 
     public function rejectPayment(Payment $payment): void
     {
-        $payment->update([
-            'status' => Payment::STATUS_FAILED,
-        ]);
+        DB::transaction(function () use ($payment) {
+            $payment->update([
+                'status' => Payment::STATUS_FAILED,
+            ]);
 
-        $this->orderService->cancelOrder($payment->order);
+            $this->orderService->cancelOrder($payment->order);
+        });
     }
 }

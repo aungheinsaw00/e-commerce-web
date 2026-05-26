@@ -9,14 +9,23 @@ class Order extends Model
 {
     use HasFactory;
 
-    const STATUS_PENDING = 'pending';
+    // Core statuses (existing — do NOT remove)
+    const STATUS_PENDING         = 'pending';
     const STATUS_PENDING_PAYMENT = 'pending_payment';
-    const STATUS_PAID = 'paid';
-    const STATUS_PROCESSING = 'processing';
-    const STATUS_SHIPPED = 'shipped';
-    const STATUS_COMPLETED = 'completed';
-    const STATUS_CANCELLED = 'cancelled';
-    const STATUS_REFUNDED = 'refunded';
+    const STATUS_PAID            = 'paid';
+    const STATUS_PROCESSING      = 'processing';
+    const STATUS_SHIPPED         = 'shipped';
+    const STATUS_COMPLETED       = 'completed';
+    const STATUS_CANCELLED       = 'cancelled';
+    const STATUS_REFUNDED        = 'refunded';
+
+    // Extended state machine statuses
+    // confirmed ≈ paid (order confirmed after payment verified)
+    const STATUS_CONFIRMED        = 'paid';
+    // delivered ≈ completed
+    const STATUS_DELIVERED        = 'completed';
+    const STATUS_RETURN_REQUESTED = 'return_requested';
+    const STATUS_RETURNED         = 'returned';
 
     protected $attributes = [
         'currency' => 'USD',
@@ -60,6 +69,16 @@ class Order extends Model
         return $this->hasOne(Payment::class)->latestOfMany();
     }
 
+    public function statusHistories()
+    {
+        return $this->hasMany(OrderStatusHistory::class)->orderBy('id');
+    }
+
+    public function refundRequest()
+    {
+        return $this->hasOne(RefundRequest::class);
+    }
+
     public function isPaid(): bool
     {
         return $this->status === self::STATUS_PAID;
@@ -67,6 +86,18 @@ class Order extends Model
 
     public function isCancellable(): bool
     {
-        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_PENDING_PAYMENT]);
+        return in_array($this->status, [
+            self::STATUS_PENDING,
+            self::STATUS_PENDING_PAYMENT,
+            self::STATUS_PROCESSING,
+        ]);
+    }
+
+    public function isRefundable(): bool
+    {
+        return in_array($this->status, [
+            self::STATUS_COMPLETED,
+            self::STATUS_DELIVERED,
+        ]);
     }
 }

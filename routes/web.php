@@ -3,9 +3,11 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RefundController;
 use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,14 @@ Route::middleware(['auth', 'redirect_admin'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+
+    // Refund requests (user-facing)
+    Route::post('/orders/{order}/refund', [RefundController::class, 'store'])->name('orders.refund.store');
 });
 
 // Admin routes
@@ -56,6 +66,14 @@ Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(
     Route::get('payments/{payment}/proof', [Admin\OrderController::class, 'downloadProof'])->name('payments.proof');
     Route::post('payments/{payment}/verify', [Admin\OrderController::class, 'verifyPayment'])->name('payments.verify');
     Route::post('payments/{payment}/reject', [Admin\OrderController::class, 'rejectPayment'])->name('payments.reject');
+
+    // Analytics
+    Route::get('analytics', [Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+
+    // Refund management
+    Route::get('refunds', [Admin\RefundController::class, 'index'])->name('refunds.index');
+    Route::post('refunds/{refundRequest}/approve', [Admin\RefundController::class, 'approve'])->name('refunds.approve');
+    Route::post('refunds/{refundRequest}/reject', [Admin\RefundController::class, 'reject'])->name('refunds.reject');
 
 });
 
