@@ -30,11 +30,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Notification event → listener registrations
-        Event::listen(OrderPlaced::class, NotifyAdminOrderPlaced::class);
-        Event::listen(OrderStatusUpdated::class, NotifyUserOrderStatusUpdated::class);
-        Event::listen(RefundRequested::class, NotifyAdminRefundRequested::class);
-        Event::listen(RefundApproved::class, NotifyUserRefundApproved::class);
-        Event::listen(RefundRejected::class, NotifyUserRefundRejected::class);
+        // Relying on Laravel 11 auto-discovery for Event Listeners
     }
 }

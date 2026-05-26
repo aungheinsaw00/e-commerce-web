@@ -18,6 +18,13 @@ class NotificationController extends Controller
         $notifications = $this->notificationService->getAllForUser($request->user());
         $unreadCount   = $this->notificationService->unreadCount($request->user());
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'notifications' => $notifications,
+                'unreadCount' => $unreadCount,
+            ]);
+        }
+
         return view('notifications.index', compact('notifications', 'unreadCount'));
     }
 

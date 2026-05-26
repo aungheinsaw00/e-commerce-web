@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @if(auth()->check())
+        <meta name="user-id" content="{{ auth()->id() }}">
+    @endif
     <title>Admin Panel - @yield('title', 'Dashboard')</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,6 +56,20 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                         </svg>
                         Dashboard
+                    </a>
+                    
+                    <a href="/notifications" 
+                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group {{ request()->routeIs('notifications.*') || request()->is('notifications') ? 'bg-sky-500/10 text-sky-400 font-semibold border-l-4 border-sky-400 pl-2' : 'hover:bg-slate-800/60 hover:text-white text-slate-400' }}">
+                        <div class="flex items-center gap-3">
+                            <svg class="w-5 h-5 shrink-0 transition-colors {{ request()->routeIs('notifications.*') || request()->is('notifications') ? 'text-sky-400' : 'text-slate-400 group-hover:text-white' }}"
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            Notifications
+                        </div>
+                        <template x-if="$store.notifications.unreadCount > 0">
+                            <span x-text="$store.notifications.unreadCount" class="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"></span>
+                        </template>
                     </a>
                 </div>
             </div>
@@ -147,19 +164,6 @@
 
             <!-- Right Side: Action & Profile Menu -->
             <div class="flex items-center gap-4" x-data="{ userMenuOpen: false }">
-                <!-- Notifications (aesthetic indicator) -->
-                <div class="relative">
-                    <button class="p-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
-                    </button>
-                </div>
-
-                <!-- Vertical divider -->
-                <div class="h-6 w-px bg-slate-200"></div>
-
                 <!-- User Dropdown Menu -->
                 <div class="relative">
                     <button @click="userMenuOpen = !userMenuOpen" 

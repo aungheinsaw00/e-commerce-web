@@ -4,11 +4,12 @@ namespace App\Listeners;
 
 use App\Events\OrderStatusUpdated;
 use App\Models\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class NotifyUserOrderStatusUpdated implements ShouldQueue
+class NotifyUserOrderStatusUpdated
 {
     public bool $afterCommit = true;
+
+    public function __construct(private \App\Services\NotificationService $notificationService) {}
 
     public function handle(OrderStatusUpdated $event): void
     {
@@ -23,16 +24,16 @@ class NotifyUserOrderStatusUpdated implements ShouldQueue
         $from = ucfirst(str_replace('_', ' ', $event->fromStatus));
         $to   = ucfirst(str_replace('_', ' ', $event->toStatus));
 
-        Notification::create([
-            'user_id' => $user->id,
-            'type'    => Notification::TYPE_ORDER_STATUS_UPDATED,
-            'title'   => "Order #{$order->id} Status Updated",
-            'message' => "Your order #{$order->id} status has changed from '{$from}' to '{$to}'.",
-            'metadata' => [
+        $this->notificationService->createForUser(
+            $user,
+            Notification::TYPE_ORDER_STATUS_UPDATED,
+            "Order #{$order->id} Status Updated",
+            "Your order #{$order->id} status has changed from '{$from}' to '{$to}'.",
+            [
                 'order_id'    => $order->id,
                 'from_status' => $event->fromStatus,
                 'to_status'   => $event->toStatus,
-            ],
-        ]);
+            ]
+        );
     }
 }

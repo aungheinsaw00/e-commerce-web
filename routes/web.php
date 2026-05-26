@@ -42,13 +42,15 @@ Route::middleware(['auth', 'redirect_admin'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Notifications
+    // Refund requests (user-facing)
+    Route::post('/orders/{order}/refund', [RefundController::class, 'store'])->name('orders.refund.store');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Notifications (Shared between admin and user)
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
-
-    // Refund requests (user-facing)
-    Route::post('/orders/{order}/refund', [RefundController::class, 'store'])->name('orders.refund.store');
 });
 
 // Admin routes

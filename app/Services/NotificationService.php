@@ -16,15 +16,23 @@ class NotificationService
         string $type,
         string $title,
         string $message,
-        array $metadata = [],
+        array $data = [],
     ): Notification {
-        return Notification::create([
+        $notification = Notification::create([
             'user_id'  => $user->id,
             'type'     => $type,
             'title'    => $title,
             'message'  => $message,
-            'metadata' => $metadata ?: null,
+            'data'     => $data ?: null,
         ]);
+
+        try {
+            \App\Events\NotificationCreated::dispatch($notification);
+        } catch (\Illuminate\Broadcasting\BroadcastException $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to broadcast notification: ' . $e->getMessage());
+        }
+
+        return $notification;
     }
 
     /**
@@ -34,12 +42,12 @@ class NotificationService
         string $type,
         string $title,
         string $message,
-        array $metadata = [],
+        array $data = [],
     ): void {
         $admins = User::where('role', 'admin')->get();
 
         foreach ($admins as $admin) {
-            $this->createForUser($admin, $type, $title, $message, $metadata);
+            $this->createForUser($admin, $type, $title, $message, $data);
         }
     }
 

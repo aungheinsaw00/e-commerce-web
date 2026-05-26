@@ -16,13 +16,15 @@ class Notification extends Model
     const TYPE_REFUND_REJECTED        = 'REFUND_REJECTED';
 
     protected $fillable = [
-        'user_id', 'type', 'title', 'message', 'read_at', 'metadata',
+        'user_id', 'type', 'title', 'message', 'read_at', 'data',
     ];
+
+    protected $appends = ['route'];
 
     protected function casts(): array
     {
         return [
-            'metadata' => 'array',
+            'data' => 'array',
             'read_at'  => 'datetime',
             'created_at' => 'datetime',
         ];
@@ -60,5 +62,30 @@ class Notification extends Model
     public function isRead(): bool
     {
         return !is_null($this->read_at);
+    }
+
+    public function getRouteAttribute(): ?string
+    {
+        $type = $this->type;
+        $data = $this->data;
+
+        if (!$data) {
+            return null;
+        }
+
+        switch ($type) {
+            case self::TYPE_ORDER_PLACED:
+            case self::TYPE_ORDER_STATUS_UPDATED:
+                return isset($data['order_id']) ? route('admin.orders.show', $data['order_id']) : null;
+            case self::TYPE_REFUND_REQUESTED:
+            case self::TYPE_REFUND_APPROVED:
+            case self::TYPE_REFUND_REJECTED:
+                return route('admin.refunds.index');
+            default:
+                if (isset($data['route'])) {
+                    return $data['route'];
+                }
+                return null;
+        }
     }
 }
