@@ -75,6 +75,10 @@ Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(
     Route::post('refunds/{refundRequest}/approve', [Admin\RefundController::class, 'approve'])->name('refunds.approve');
     Route::post('refunds/{refundRequest}/reject', [Admin\RefundController::class, 'reject'])->name('refunds.reject');
 
+    // User management
+    Route::get('users', [Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('users/{id}', [Admin\UserController::class, 'show'])->name('users.show');
+
 });
 
 // Dashboard redirect for Breeze compatibility
