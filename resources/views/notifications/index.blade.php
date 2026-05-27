@@ -17,7 +17,7 @@
         </div>
 
         <div class="p-0">
-            <template x-if="$store.notifications.items.length === 0 && !$store.notifications.loading">
+            <template x-if="$store.notifications.notifications.length === 0 && !$store.notifications.loading">
                 <div class="text-center py-16 px-4">
                     <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -30,7 +30,7 @@
             </template>
 
             <div class="divide-y divide-slate-100" @scroll.window="onScroll">
-                <template x-for="notification in $store.notifications.items" :key="notification.id">
+                <template x-for="notification in $store.notifications.notifications" :key="notification.id">
                     <div @click="markAsReadAndRedirect(notification)" 
                          class="p-6 transition-colors cursor-pointer flex items-start gap-4 hover:bg-slate-50"
                          :class="notification.read_at ? 'opacity-70' : 'bg-sky-50/30'">
@@ -72,65 +72,36 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('alpine:init', () => {
-        // Expose page-specific scroll logic & helper methods that interact with global store
-        window.onScroll = () => {
-            const bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight;
-            
-            if (bottomOfWindow && Alpine.store('notifications').nextPageUrl && !Alpine.store('notifications').loading) {
-                Alpine.store('notifications').fetchNotifications(Alpine.store('notifications').nextPageUrl);
-            }
-        };
+    // Expose page-specific scroll logic & helper methods directly on window
+    // This avoids race conditions if alpine:init has already fired
+    window.onScroll = () => {
+        const bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight;
+        
+        if (bottomOfWindow && Alpine.store('notifications').nextPageUrl && !Alpine.store('notifications').loading) {
+            Alpine.store('notifications').fetchNotifications(Alpine.store('notifications').nextPageUrl);
+        }
+    };
 
-        window.markAsReadAndRedirect = async (notification) => {
-            if (!notification.read_at) {
-                try {
-                    await fetch(`/notifications/${notification.id}/read`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    notification.read_at = new Date().toISOString();
-                    Alpine.store('notifications').unreadCount = Math.max(0, Alpine.store('notifications').unreadCount - 1);
-                } catch (error) {
-                    console.error('Error marking as read:', error);
-                }
-            }
-            
-            if (notification.data && notification.data.order_id) {
-                window.location.href = `/orders/${notification.data.order_id}`;
-            } else if (notification.route) {
-                window.location.href = notification.route;
-            }
-        };
+    window.markAsReadAndRedirect = (notification) => {
+        if (!notification.read_at) {
+            Alpine.store('notifications').markAsRead(notification.id);
+        }
+        
+        if (notification.data && notification.data.order_id) {
+            window.location.href = `/orders/${notification.data.order_id}`;
+        } else if (notification.route) {
+            window.location.href = notification.route;
+        }
+    };
 
-        window.markAllAsRead = async () => {
-            try {
-                await fetch(`/notifications/read-all`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                Alpine.store('notifications').items.forEach(n => n.read_at = new Date().toISOString());
-                Alpine.store('notifications').unreadCount = 0;
-            } catch (error) {
-                console.error('Error marking all as read:', error);
-            }
-        };
+    window.markAllAsRead = () => {
+        Alpine.store('notifications').markAllAsRead();
+    };
 
-        window.formatDate = (dateString) => {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        };
-    });
+    window.formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
 </script>
 @endpush
