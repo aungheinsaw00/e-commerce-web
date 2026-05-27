@@ -49,18 +49,24 @@ class OrderController extends Controller
         return Storage::disk('private')->response($payment->proof_path);
     }
 
-    public function markPaid(Order $order)
+    public function processPayment(Order $order)
     {
         if ($order->status !== Order::STATUS_PENDING_PAYMENT) {
+            if (request()->expectsJson()) {
+                return response()->json(['error' => 'Only orders awaiting payment can be marked as paid.'], 400);
+            }
             return redirect()->back()
                 ->with('error', 'Only orders awaiting payment can be marked as paid.');
         }
 
-        $payment = $order->latestPayment
-            ?? $this->paymentService->initiatePayment($order);
+        $this->orderService->processPayment($order, $this->paymentService);
 
-        $this->paymentService->verifyPayment($payment);
-
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => 'Order marked as paid.',
+                'status' => $order->status
+            ]);
+        }
         return redirect()->back()->with('success', 'Order marked as paid.');
     }
 
@@ -105,9 +111,18 @@ class OrderController extends Controller
                 $request->input('note'),
             );
         } catch (InvalidOrderTransitionException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['error' => $e->getMessage()], 400);
+            }
             return redirect()->back()->with('error', $e->getMessage());
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => 'Order status updated.',
+                'status' => $order->status
+            ]);
+        }
         return redirect()->back()->with('success', 'Order status updated.');
     }
 }

@@ -112,16 +112,6 @@
                 </div>
             </div>
 
-            <!-- Shop link -->
-            <div class="pt-4 border-t border-slate-800">
-                <a href="{{ route('home') }}" 
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all group">
-                    <svg class="w-5 h-5 shrink-0 text-slate-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    Go to Storefront
-                </a>
-            </div>
         </nav>
 
         <!-- Sidebar User Footer -->

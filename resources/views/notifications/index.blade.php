@@ -87,10 +87,10 @@
             Alpine.store('notifications').markAsRead(notification.id);
         }
         
-        if (notification.data && notification.data.order_id) {
+        if (notification.data && notification.data.route) {
+            window.location.href = notification.data.route.replace("{id}", notification.data.order_id);
+        } else if (notification.data && notification.data.order_id) {
             window.location.href = `/orders/${notification.data.order_id}`;
-        } else if (notification.route) {
-            window.location.href = notification.route;
         }
     };
 

@@ -26,6 +26,7 @@ class NotifyAdminRefundRequested
                 'refund_request_id' => $refund->id,
                 'order_id'          => $refund->order_id,
                 'user_id'           => $refund->user_id,
+                'route'             => '/admin/orders/{id}',
             ]
         );
     }

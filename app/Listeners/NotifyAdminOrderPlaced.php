@@ -31,6 +31,7 @@ class NotifyAdminOrderPlaced
                 'user_id'   => $order->user_id,
                 'total'     => $order->total,
                 'currency'  => $order->currency,
+                'route'     => '/admin/orders/{id}',
             ]
         );
     }

@@ -169,6 +169,23 @@ class OrderService
     }
 
     // ----------------------------------------------------------------
+    // Process Payment (Single Action logic)
+    // ----------------------------------------------------------------
+
+    public function processPayment(Order $order, \App\Services\PaymentService $paymentService): void
+    {
+        $payment = $order->latestPayment;
+        $hasProof = $payment && $payment->proof_path;
+
+        if ($hasProof) {
+            $paymentService->verifyPayment($payment);
+        } else {
+            $payment = $payment ?? $paymentService->initiatePayment($order);
+            $paymentService->verifyPayment($payment);
+        }
+    }
+
+    // ----------------------------------------------------------------
     // Mark as Paid (called by PaymentService after verification)
     // ----------------------------------------------------------------
 
