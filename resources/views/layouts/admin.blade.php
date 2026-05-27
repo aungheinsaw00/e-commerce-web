@@ -58,10 +58,10 @@
                         Dashboard
                     </a>
                     
-                    <a href="/notifications" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group {{ request()->routeIs('notifications.*') || request()->is('notifications') ? 'bg-sky-500/10 text-sky-400 font-semibold border-l-4 border-sky-400 pl-2' : 'hover:bg-slate-800/60 hover:text-white text-slate-400' }}">
+                    <a href="{{ route('admin.notifications.index') }}" 
+                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all group {{ request()->routeIs('admin.notifications.*') || request()->is('admin/notifications') ? 'bg-sky-500/10 text-sky-400 font-semibold border-l-4 border-sky-400 pl-2' : 'hover:bg-slate-800/60 hover:text-white text-slate-400' }}">
                         <div class="flex items-center gap-3">
-                            <svg class="w-5 h-5 shrink-0 transition-colors {{ request()->routeIs('notifications.*') || request()->is('notifications') ? 'text-sky-400' : 'text-slate-400 group-hover:text-white' }}"
+                            <svg class="w-5 h-5 shrink-0 transition-colors {{ request()->routeIs('admin.notifications.*') || request()->is('admin/notifications') ? 'text-sky-400' : 'text-slate-400 group-hover:text-white' }}"
                                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
@@ -178,13 +178,6 @@
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg shadow-slate-100/50 py-1.5 z-50 focus:outline-none"
                          style="display: none;">
-                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                            <svg class="w-4.5 h-4.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            My Profile
-                        </a>
-                        <div class="h-px bg-slate-100 my-1"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50/50 transition-colors text-left">

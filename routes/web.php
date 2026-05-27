@@ -56,7 +56,8 @@ Route::middleware(['auth'])->group(function () {
 // Admin routes
 Route::prefix('admin')->middleware(['auth', 'is_admin'])->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
-
+    
+    Route::get('notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
 
     Route::resource('products', Admin\ProductController::class)->except(['show']);
     Route::resource('categories', Admin\CategoryController::class)->except(['show', 'create', 'edit']);

@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
+<nav x-data="{ open: false, logout() { fetch('/logout', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' } }).then(() => { if (Alpine.store('notifications')) Alpine.store('notifications').clear(); window.location.href = '/login'; }) } }" class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100/50">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -139,15 +139,7 @@
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <!-- Authentication -->
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-
-                        <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
-                                            this.closest('form').submit();">
-                            {{ __('Log Out') }}
-                        </x-responsive-nav-link>
-                    </form>
+                    <!-- Additional responsive links can go here -->
                 </div>
             </div>
         @else

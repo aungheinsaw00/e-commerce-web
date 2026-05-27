@@ -77,6 +77,19 @@
         </form>
     </div>
 
+    {{-- Logout --}}
+    <div class="bg-white rounded-xl border border-gray-100 p-6 mb-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-2">Sign Out</h2>
+        <p class="text-sm text-gray-500 mb-4">Log out of your account on this device.</p>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"
+                class="border border-red-200 text-red-600 bg-red-50 text-sm font-medium px-5 py-2 rounded-lg hover:bg-red-100 transition">
+                Log Out
+            </button>
+        </form>
+    </div>
+
     {{-- Change Password --}}
     <div class="bg-white rounded-xl border border-gray-100 p-6 mb-6">
         <h2 class="text-base font-semibold text-gray-900 mb-5">Change Password</h2>
