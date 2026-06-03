@@ -1,321 +1,41 @@
-# Deploy CarPart on Render
+# Render Hosting Notes
 
-> **Portfolio-ready** — one free Web Service, SQLite demo data, **Upstash Redis** + **Pusher** for sessions and live notifications.  
-> Setup: [UPSTASH-PUSHER.md](UPSTASH-PUSHER.md). Local dev: [Laravel Sail](../README.md).
+Portfolio demo: Docker Web Service, SQLite, `render.yaml` Blueprint. **Setup steps are in [README.md](../README.md).**
 
----
+## Repo files
 
-## At a glance
+| File | Role |
+|------|------|
+| `render.yaml` | Blueprint |
+| `.env.render.example` | Env template |
+| `Dockerfile` | Build (Composer + Vite) |
+| `docker/render/start.sh` | Migrate, seed, serve |
 
-| Item | Value |
-|------|--------|
-| **Platform** | [Render](https://render.com) Web Service (Docker) |
-| **Cost** | Free tier (sleeps after ~15 min idle; first load ~30–60s) |
-| **Database** | SQLite (file in container; re-seeded on deploy) |
-| **Realtime** | Pusher Channels (`BROADCAST_CONNECTION=pusher`) |
-| **Redis** | Upstash (`REDIS_URL`, sessions + cache) |
-| **Demo logins** | See [Demo accounts](#demo-accounts) |
-
-```mermaid
-flowchart TB
-    subgraph Render["Render (free tier)"]
-        WEB["Web Service<br/>Docker + PHP 8.4"]
-        DB[("SQLite<br/>database.sqlite")]
-        WEB --> DB
-    end
-    USER["Recruiter / visitor"] -->|HTTPS| WEB
-    GITHUB["GitHub repo"] -->|auto deploy| WEB
-```
-
----
-
-## What's included in this repo
-
-| File | Purpose |
-|------|---------|
-| [`Dockerfile`](../Dockerfile) | Multi-stage build: Composer + Vite + PHP |
-| [`render.yaml`](../render.yaml) | Render Blueprint (one-click infra) |
-| [`.env.render.example`](../.env.render.example) | Environment variable template |
-| [`docker/render/start.sh`](../docker/render/start.sh) | Container start (migrate cache, `artisan serve`) |
-| [`database/seeders/RenderDemoSeeder.php`](../database/seeders/RenderDemoSeeder.php) | Fast demo catalog (~12 products) |
-
----
-
-## Quick start (Blueprint — recommended)
-
-### 1. Push to GitHub
-
-Ensure the repo is on GitHub (Render connects to Git).
-
-### 2. Create Blueprint on Render
-
-1. Open [dashboard.render.com](https://dashboard.render.com)
-2. **New +** → **Blueprint**
-3. Connect the **carPart** repository
-4. Render reads [`render.yaml`](../render.yaml) and creates **carpart** Web Service
-
-### 3. Set `APP_URL` after the first deploy
-
-1. Open the service → **Environment**
-2. Set **`APP_URL`** to your live URL, e.g. `https://carpart-xxxx.onrender.com` (no trailing slash)
-3. **Save** → triggers a redeploy
-
-Set **`APP_KEY`** (required). Generate locally:
-
-```bash
-php artisan key:generate --show
-```
-
-Paste into Render → **Environment** **without quotes**:
-
-```env
-APP_KEY=base64:YOUR_GENERATED_KEY_HERE=
-```
-
-If your key is raw base64 only (no `base64:` prefix), either add the prefix or redeploy with the latest `start.sh` (it auto-prefixes).
-
-**Also required:** `APP_URL=https://your-service.onrender.com`
-
-### 4. Wait for deploy
-
-- **Build** (~3–8 min): Composer, `npm run build`, Docker image  
-- **Startup**: `migrate` + `RenderDemoSeeder` run from `docker/render/start.sh` (free tier has no pre-deploy command)  
-- **Health**: `https://YOUR-URL/up` should return **200** (may take longer on first boot while DB seeds)
-
-### 5. Open the site
-
-Visit your Render URL. Demo logins are in [Demo accounts](#demo-accounts) below.
-
----
-
-## Manual setup (Dashboard, no Blueprint)
-
-Use this if you prefer clicking through the UI instead of `render.yaml`.
-
-### Step 1 — Web Service
-
-| Field | Value |
-|-------|--------|
-| **Type** | Web Service |
-| **Runtime** | Docker |
-| **Dockerfile path** | `./Dockerfile` |
-| **Region** | Oregon (or nearest) |
-| **Plan** | Free |
-| **Health check** | `/up` |
-
-### Step 2 — Database bootstrap (free tier)
-
-**Free tier does not support Pre-Deploy Command.** Migrations and demo seed run automatically on each container start via [`docker/render/start.sh`](../docker/render/start.sh) when `APP_DEMO_MODE=true`.
-
-Paid plans can optionally add a **Pre-Deploy Command** with the same migrate/seed lines to run before start (faster health checks).
-
-### Step 3 — Environment variables
-
-Copy from [`.env.render.example`](../.env.render.example). Minimum set:
-
-```env
-APP_NAME=CarPart
-APP_ENV=production
-APP_DEBUG=false
-APP_KEY=base64:...          # Generate: php artisan key:generate --show
-APP_URL=https://YOUR-SERVICE.onrender.com
-APP_DEMO_MODE=true
-
-LOG_CHANNEL=stderr
-LOG_LEVEL=info
-
-DB_CONNECTION=sqlite
-DB_DATABASE=/var/www/html/database/database.sqlite
-
-REDIS_CLIENT=predis
-REDIS_URL=rediss://default:...@....upstash.io:6379
-SESSION_DRIVER=redis
-CACHE_STORE=redis
-SESSION_SECURE_COOKIE=false
-RENDER=true
-QUEUE_CONNECTION=sync
-BROADCAST_CONNECTION=pusher
-PUSHER_APP_ID=...
-PUSHER_APP_KEY=...
-PUSHER_APP_SECRET=...
-PUSHER_APP_CLUSTER=mt1
-VITE_PUSHER_APP_KEY=...        # same as PUSHER_APP_KEY — rebuild after change
-VITE_PUSHER_APP_CLUSTER=mt1
-VITE_PUSHER_SCHEME=https
-FILESYSTEM_DISK=local
-MAIL_MAILER=log
-```
-
-### Step 4 — Deploy
-
-Connect branch → **Deploy**. Watch **Logs** for errors.
-
----
-
-## Demo accounts
-
-Seeded by [`RenderDemoSeeder`](../database/seeders/RenderDemoSeeder.php) on each **container start** when `APP_DEMO_MODE=true` (see `docker/render/start.sh`).
+## Demo logins
 
 | Role | Email | Password |
 |------|--------|----------|
-| **Admin** | `admin@carpart.test` | `password` |
-| **Customer** | `user@carpart.test` | `password` |
+| Admin | `admin@carpart.test` | `password` |
+| Customer | `user@carpart.test` | `password` |
 
-**Admin URL:** `/admin` (after logging in as admin)
+## Free tier
 
-> For local development with the **full** ~2,500-product catalog, use Sail:  
-> `./vendor/bin/sail artisan migrate:fresh --seed`  
-> (runs `CatalogSeeder` — **not** used on Render)
-
----
-
-## Environment reference
-
-### Demo profile (default in `render.yaml`)
-
-| Variable | Value | Why |
-|----------|--------|-----|
-| `DB_CONNECTION` | `sqlite` | No external MySQL cost |
-| `REDIS_URL` | Upstash `rediss://…` | Sessions + cache (see [UPSTASH-PUSHER.md](UPSTASH-PUSHER.md)) |
-| `REDIS_CLIENT` | `predis` | TLS Redis without `phpredis` in Docker |
-| `SESSION_DRIVER` | `redis` | Shared session store |
-| `SESSION_SECURE_COOKIE` | `false` | TLS ends at Render edge; `true` often blocks cookies → 419 |
-| `RENDER` | `true` | Enables production session tweaks (set in `render.yaml`) |
-| `QUEUE_CONNECTION` | `sync` | No background worker on free tier |
-| `BROADCAST_CONNECTION` | `pusher` | Live notifications via Pusher Channels |
-| `VITE_PUSHER_*` | Same as Pusher app | Baked into JS at Docker build |
-| `APP_DEMO_MODE` | `true` | Runs lightweight `RenderDemoSeeder` on container start |
-
-**Setup:** [UPSTASH-PUSHER.md](UPSTASH-PUSHER.md) — create Upstash + Pusher apps, paste secrets in Render, redeploy.
-
-### Upgrade path (production-like)
-
-| Add | Render resource |
-|-----|-----------------|
-| MySQL | External DB (Railway, Aiven, DO) — set `DB_*` |
-| Queues | Background Worker — `php artisan queue:work redis` |
-| Uploads | S3/R2 — configure `FILESYSTEM_DISK=s3` + disk config |
-
----
-
-## Build & runtime (how the container works)
-
-```mermaid
-sequenceDiagram
-    participant R as Render
-    participant D as Dockerfile
-    participant C as Container
-
-    R->>D: docker build
-    D->>D: npm run build (Vite)
-    D->>D: composer install --no-dev
-    R->>C: start.sh migrate + seed
-    C->>C: storage:link, config cache
-    C->>C: artisan serve :PORT
-```
-
-- **Port:** Render sets `$PORT`; start script binds `0.0.0.0:$PORT`
-- **HTTPS:** `TrustProxies` + `URL::forceScheme('https')` in production
-- **Assets:** Pre-built into `public/build` during Docker build (no Node at runtime)
-
----
-
-## Free tier behavior (portfolio)
-
-| Behavior | What visitors see |
-|----------|-------------------|
-| **Sleep** | After ~15 min idle, first click waits ~30–60s |
-| **Redeploy / wake** | SQLite may reset → startup script re-runs migrate + seed |
-| **Uploads** | Payment proofs on local disk may **not survive** redeploy/restart |
-
-**Resume tip:** Add to README: *"Live demo may cold-start on free tier."*  
-**Backup:** Record a short screen capture for offline viewing.
-
----
+- Sleeps after ~15 min idle; cold start ~30–60s
+- SQLite + seed on each container start when `APP_DEMO_MODE=true`
+- Uploads on local disk may not survive redeploy
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---------|-----|
-| **First load very slow** | Normal on free tier: container start runs migrate + seed before `artisan serve` |
-| **502 / deploy failed** | Check **Logs** → often missing `APP_KEY` or build error |
-| **500 on every page** | Set `APP_KEY` (`base64:…` from `php artisan key:generate --show`); set `APP_URL` to exact Render HTTPS URL; redeploy |
-| **500 after env change** | Redeploy (startup runs `optimize:clear` — avoid manual config cache on free tier) |
-| **419 on POST /login** | `APP_URL=https://…onrender.com`, `APP_KEY=base64:…` (no quotes), `SESSION_SECURE_COOKIE=false`, valid `REDIS_URL`. Redeploy; clear cookies. |
-| **No live notifications** | Set `BROADCAST_CONNECTION=pusher`, all `PUSHER_*` + `VITE_PUSHER_*`, then **redeploy** (Vite bakes keys at build). Check Pusher Debug Console. |
-| **Redis connection error** | `REDIS_CLIENT=predis`, Upstash URL uses `rediss://`, region reachable from Render |
-| **No CSS / unstyled page** | Redeploy latest `start.sh` (must use `public/server.php` so `/build/assets/*` are served). Hard-refresh (Ctrl+Shift+R). |
-| **Admin stats pale / no labels** | Redeploy after Tailwind safelist fix; rebuild Docker image so `npm run build` runs again. |
-| **CSS/JS broken** | Build failed — search logs for `npm run build` errors |
-| **`/up` unhealthy** | App not listening on `$PORT`; verify Docker deploy succeeded |
-| **No products** | Redeploy or restart service (startup runs seeder); or Render Shell: `php artisan db:seed --class=RenderDemoSeeder --force` |
-| **Login works, then logout** | `APP_URL` mismatch or session path — confirm HTTPS URL |
-| **Admin 403** | Log in as `admin@carpart.test`, not customer |
+| Issue | Fix |
+|-------|-----|
+| 502 / build fail | Check logs; set `APP_KEY` and `APP_URL` |
+| 500 everywhere | `APP_KEY=base64:…`, correct `APP_URL`, redeploy |
+| 419 on login | `SESSION_SECURE_COOKIE=false`, `SESSION_DRIVER=cookie`, clear cookies |
+| No notifications | Set all `PUSHER_*` + `VITE_PUSHER_*`, redeploy (Vite bakes at build) |
+| No products | Redeploy or `php artisan db:seed --class=RenderDemoSeeder --force` in Shell |
+| Unstyled UI | Redeploy; hard-refresh; check `npm run build` in deploy logs |
 
-### Useful Render Shell commands
+## Related
 
-```bash
-php artisan migrate:status
-php artisan db:seed --class=RenderDemoSeeder --force
-php artisan config:clear
-php artisan route:list
-```
-
----
-
-## Local test (Docker, before Render)
-
-```bash
-# From project root
-docker build -t carpart-render .
-
-docker run --rm -p 10000:10000 \
-  -e APP_KEY=base64:$(openssl rand -base64 32) \
-  -e APP_ENV=production \
-  -e APP_DEBUG=false \
-  -e APP_URL=http://localhost:10000 \
-  -e DB_CONNECTION=sqlite \
-  -e DB_DATABASE=/var/www/html/database/database.sqlite \
-  -e REDIS_CLIENT=predis \
-  -e REDIS_URL=rediss://... \
-  -e SESSION_DRIVER=redis \
-  -e CACHE_STORE=redis \
-  -e QUEUE_CONNECTION=sync \
-  -e BROADCAST_CONNECTION=pusher \
-  -e PUSHER_APP_KEY=... \
-  -e VITE_PUSHER_APP_KEY=... \
-  -e APP_DEMO_MODE=true \
-  carpart-render
-```
-
-Migrate and seed run automatically via `start.sh` when `APP_DEMO_MODE=true`.
-
-Open: http://localhost:10000 (first boot may take ~30s while the DB seeds)
-
----
-
-## Custom domain (optional)
-
-1. Service → **Settings** → **Custom Domains**
-2. Add domain; configure DNS as Render instructs
-3. Update `APP_URL=https://yourdomain.com`
-4. Redeploy
-
----
-
-## Checklist before sharing on your portfolio
-
-- [ ] Live URL works (`/up` returns 200)
-- [ ] `APP_URL` matches public HTTPS URL
-- [ ] Tested admin + customer login
-- [ ] README links to this doc and your live URL
-- [ ] Noted cold-start on free tier (one line)
-- [ ] Optional: GIF/screenshots in README
-
----
-
-## Related docs
-
-- [README.md](../README.md) — local Sail setup  
-- [.env.render.example](../.env.render.example) — env template  
-- [render.yaml](../render.yaml) — Blueprint definition
+- [UPSTASH-PUSHER.md](UPSTASH-PUSHER.md) — optional Redis + Pusher env names
+- [HOSTING-PRODUCTION.md](HOSTING-PRODUCTION.md) — full production layout

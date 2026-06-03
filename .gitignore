@@ -3,6 +3,9 @@
 .env
 .env.backup
 .env.production
+.env.render
+.env.render.local
+.env.*.local
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -24,5 +27,7 @@ Homestead.yaml
 Thumbs.db
 .agents
 .cursor
+agent.md
+skill.md
 project-analysis.json
 futureImplementation.md
