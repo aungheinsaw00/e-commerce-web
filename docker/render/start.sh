@@ -51,6 +51,7 @@ php artisan migrate --force --no-interaction
 
 if [ "${APP_DEMO_MODE:-false}" = "true" ]; then
     php artisan db:seed --class=RenderDemoSeeder --force --no-interaction
+    php artisan notifications:prune-read --no-interaction 2>/dev/null || true
 fi
 
 if [ -z "${APP_URL:-}" ] && [ -n "${RENDER_EXTERNAL_URL:-}" ]; then

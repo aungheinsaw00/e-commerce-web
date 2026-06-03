@@ -134,4 +134,15 @@ return [
 
     'demo_mode' => (bool) env('APP_DEMO_MODE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Demo session lifetime (minutes)
+    |--------------------------------------------------------------------------
+    |
+    | When APP_DEMO_MODE is true, overrides SESSION_LIFETIME for shorter logins.
+    |
+    */
+
+    'demo_session_lifetime' => (int) env('DEMO_SESSION_LIFETIME', 30),
+
 ];

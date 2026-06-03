@@ -46,5 +46,11 @@ class AppServiceProvider extends ServiceProvider
                 'session.same_site' => 'lax',
             ]);
         }
+
+        if (config('app.demo_mode')) {
+            config([
+                'session.lifetime' => config('app.demo_session_lifetime'),
+            ]);
+        }
     }
 }

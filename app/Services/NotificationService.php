@@ -97,4 +97,21 @@ class NotificationService
     {
         return Notification::forUser($user)->unread()->count();
     }
+
+    /**
+     * Delete notifications that were read at least $days ago.
+     */
+    public function pruneReadOlderThan(int $days): int
+    {
+        if ($days <= 0) {
+            return 0;
+        }
+
+        $cutoff = now()->subDays($days);
+
+        return Notification::query()
+            ->whereNotNull('read_at')
+            ->where('read_at', '<', $cutoff)
+            ->delete();
+    }
 }
