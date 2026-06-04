@@ -4,14 +4,20 @@ E-commerce app for car parts: catalog, cart, pay-by-transfer checkout, payment p
 
 ## Tech Stack
 
-- Laravel 11, PHP 8.4, MySQL 8
-- Blade, Tailwind CSS v4, Alpine.js, Vite
+- Laravel 12, PHP 8.4, MySQL 8
+- Blade, Tailwind CSS v4, Alpine.js, Vite 7
 - Pusher Channels, Laravel Echo
 - Docker via Laravel Sail
 
-## Quick Start
+## Prerequisites
 
-Use WSL and keep the project on the Linux filesystem.
+- Docker Desktop running (WSL2 on Windows)
+- Clone the repo **inside WSL** (e.g. `~/projects/…`), not on `C:\` or `/mnt/c/`
+- Composer on your machine for the first `composer install`
+
+Node **20.19+** or **22.12+** is only needed if you run `npm` on the host. The steps below use Sail instead, so you can skip installing Node locally.
+
+## Quick Start
 
 1. Clone and enter the project:
 
@@ -20,19 +26,19 @@ git clone https://github.com/Wyco68/e-commerce-web.git
 cd e-commerce-web
 ```
 
-2. Copy env and install dependencies:
+2. Copy env and install PHP packages:
 
 ```bash
 cp .env.example .env
 composer install
-npm install
 ```
 
-3. Start Sail and build assets:
+3. Start Sail, install frontend packages, and build assets:
 
 ```bash
 ./vendor/bin/sail up -d
-npm run build
+./vendor/bin/sail npm ci
+./vendor/bin/sail npm run build
 ```
 
 4. Migrate and seed:
@@ -60,6 +66,59 @@ Admin users come from the database seeder (not a separate command).
 
 ```bash
 ./vendor/bin/sail test
+```
+
+## Troubleshooting
+
+### `npm install` or `npm ci` fails
+
+Use Sail instead of npm on Windows or an old Node version:
+
+```bash
+./vendor/bin/sail up -d
+./vendor/bin/sail npm ci
+./vendor/bin/sail npm run build
+```
+
+Still failing? Remove `node_modules` and try again:
+
+```bash
+rm -rf node_modules
+./vendor/bin/sail npm ci
+```
+
+If the error says **EBADENGINE** or mentions **vite**, your Node is too old. Use Sail (above) or upgrade to Node **20.19+** or **22.12+**.
+
+### “Vite manifest not found”
+
+Frontend assets are not built yet (`public/build` is not in git). Run:
+
+```bash
+./vendor/bin/sail npm ci
+./vendor/bin/sail npm run build
+```
+
+Then refresh http://localhost.
+
+### Docker / Sail won’t start
+
+Start Docker Desktop and wait until it is fully running, then run `./vendor/bin/sail up -d` again.
+
+### 500 error or “table doesn’t exist”
+
+Database not set up yet:
+
+```bash
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate:fresh --seed
+```
+
+### Permission error on `storage/logs`
+
+Run Artisan through Sail, not as root on the host:
+
+```bash
+./vendor/bin/sail artisan migrate --seed
 ```
 
 ## Deployment
